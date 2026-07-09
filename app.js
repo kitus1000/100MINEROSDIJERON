@@ -258,6 +258,16 @@ class MiningGameShow {
         }
 
         document.getElementById('btnStartShow').addEventListener('click', () => {
+            const t1NameInput = document.getElementById('inputTeam1Name').value.trim();
+            const t2NameInput = document.getElementById('inputTeam2Name').value.trim();
+            
+            this.team1Name = t1NameInput !== "" ? t1NameInput.toUpperCase() : "BARRETEROS";
+            this.team2Name = t2NameInput !== "" ? t2NameInput.toUpperCase() : "GAMBUSINOS";
+
+            // Actualizar textos en los podios de la TV
+            document.querySelector('#podiumTeam1 .team-name').textContent = this.team1Name;
+            document.querySelector('#podiumTeam2 .team-name').textContent = this.team2Name;
+
             this.introScreen.classList.add('hidden');
             this.playSound('intro');
             this.currentMatchRound = 1;
@@ -510,6 +520,8 @@ class MiningGameShow {
             activeTeam: this.activeTeam,
             stealMode: this.stealMode,
             currentStrikes: this.currentStrikes,
+            team1Name: this.team1Name,
+            team2Name: this.team2Name,
             
             // Estado Dinero Rápido
             fastMoneyMode: this.fastMoneyMode,

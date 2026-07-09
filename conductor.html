@@ -345,6 +345,13 @@
                 document.getElementById('remoteRoundBadge').textContent = `🎁 RONDA ${data.round || 1} DE 5`;
                 
                 // Selector de turnos
+                const t1Name = data.team1Name || 'BARRETEROS';
+                const t2Name = data.team2Name || 'GAMBUSINOS';
+                document.getElementById('btnTurnT1').textContent = `👷‍♂️ ${t1Name}`;
+                document.getElementById('btnTurnT2').textContent = `💡 ${t2Name}`;
+                document.getElementById('remAwardT1').textContent = `👷‍♂️ +1 RONDA ${t1Name}`;
+                document.getElementById('remAwardT2').textContent = `💡 +1 RONDA ${t2Name}`;
+
                 document.getElementById('btnTurnT1').style.background = activeTeam === 'team1' ? '#ffd800' : '#0d1b3e';
                 document.getElementById('btnTurnT1').style.color = activeTeam === 'team1' ? '#000' : '#fff';
                 document.getElementById('btnTurnT2').style.background = activeTeam === 'team2' ? '#ffd800' : '#0d1b3e';
