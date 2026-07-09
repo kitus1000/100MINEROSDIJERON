@@ -413,13 +413,15 @@
                 q.answers.forEach(a => {
                     const isSelectedP1 = p1Ans === a.text;
                     const isSelectedP2 = p2Ans === a.text;
-                    p1OptionsHTML += `<button class="fast-btn-select ${isSelectedP1 ? 'selected' : ''}" onclick="selectFastAnswer('player1', ${idx}, '${a.text}', ${a.points})">${a.text} (${a.points})</button>`;
-                    p2OptionsHTML += `<button class="fast-btn-select ${isSelectedP2 ? 'selected' : ''}" onclick="selectFastAnswer('player2', ${idx}, '${a.text}', ${a.points})">${a.text} (${a.points})</button>`;
+                    const isRepeated = p1Ans === a.text && a.text !== 'OTRO / CERO' && p1Ans !== "";
+                    
+                    p1OptionsHTML += `<button class="fast-btn-select ${isSelectedP1 ? 'selected' : ''}" onclick="selectFastAnswer('player1', ${idx}, '${a.text}', ${a.points}, false)">${a.text} (${a.points})</button>`;
+                    p2OptionsHTML += `<button class="fast-btn-select ${isSelectedP2 ? 'selected' : ''}" style="${isRepeated ? 'border: 2px solid #ff1e38; color: #ff1e38;' : ''}" onclick="selectFastAnswer('player2', ${idx}, '${a.text}', ${a.points}, ${isRepeated})">${a.text} (${a.points})${isRepeated ? ' ⚠️' : ''}</button>`;
                 });
 
                 // Opción 0 Puntos
-                p1OptionsHTML += `<button class="fast-btn-select ${p1Ans === 'OTRO / CERO' ? 'selected' : ''}" onclick="selectFastAnswer('player1', ${idx}, 'OTRO / CERO', 0)">OTRO (0)</button>`;
-                p2OptionsHTML += `<button class="fast-btn-select ${p2Ans === 'OTRO / CERO' ? 'selected' : ''}" onclick="selectFastAnswer('player2', ${idx}, 'OTRO / CERO', 0)">OTRO (0)</button>`;
+                p1OptionsHTML += `<button class="fast-btn-select ${p1Ans === 'OTRO / CERO' ? 'selected' : ''}" onclick="selectFastAnswer('player1', ${idx}, 'OTRO / CERO', 0, false)">OTRO (0)</button>`;
+                p2OptionsHTML += `<button class="fast-btn-select ${p2Ans === 'OTRO / CERO' ? 'selected' : ''}" onclick="selectFastAnswer('player2', ${idx}, 'OTRO / CERO', 0, false)">OTRO (0)</button>`;
 
                 card.innerHTML = `
                     <div style="font-weight:800; font-size:1.05rem; border-bottom:1px solid #3c6fe6; padding-bottom:0.4rem; color:#ffd800;">
@@ -463,7 +465,7 @@
         }
 
         // Seleccionar respuesta de Dinero Rápido
-        window.selectFastAnswer = function(playerKey, qIdx, answerText, pointsVal) {
+        window.selectFastAnswer = function(playerKey, qIdx, answerText, pointsVal, isRepeated = false) {
             fastAnswers[playerKey][qIdx] = answerText;
             fastPoints[playerKey][qIdx] = pointsVal;
             
@@ -472,6 +474,11 @@
                 answers: fastAnswers,
                 points: fastPoints
             });
+            
+            if (isRepeated) {
+                sendRemoteCommand('PLAY_BUZZER');
+            }
+            
             renderFastMoneyRemote();
         };
 

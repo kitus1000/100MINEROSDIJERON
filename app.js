@@ -335,7 +335,17 @@ class MiningGameShow {
             this.currentMatchRound = 1;
             this.updateRoundStars();
             this.championOverlay.classList.remove('active');
+            if (this.fastMoneyMode) {
+                this.toggleFastMoneyMode();
+            }
             this.showRoundAnnouncement(1);
+        });
+
+        document.getElementById('btnLaunchFastMoneyFromChampion').addEventListener('click', () => {
+            this.championOverlay.classList.remove('active');
+            if (!this.fastMoneyMode) {
+                this.toggleFastMoneyMode();
+            }
         });
 
         document.querySelectorAll('.team-name').forEach(el => {
@@ -434,6 +444,8 @@ class MiningGameShow {
             this.startFastTimer(cmd.seconds);
         } else if (cmd.action === 'STOP_FAST_TIMER') {
             this.stopFastTimer();
+        } else if (cmd.action === 'PLAY_BUZZER') {
+            this.playSound('incorrect');
         }
     }
 
@@ -957,18 +969,18 @@ class MiningGameShow {
 
         this.fastTotalPointsBox.textContent = total;
 
-        // Si llega a 100 puntos y no se ha celebrado aún
-        if (total >= 100 && !this.fastMoneyCelebrated) {
+        // Si llega a 200 puntos y no se ha celebrado aún
+        if (total >= 200 && !this.fastMoneyCelebrated) {
             this.fastMoneyCelebrated = true;
             this.triggerVictoryCelebration();
-        } else if (total < 100) {
+        } else if (total < 200) {
             this.fastMoneyCelebrated = false;
         }
     }
 
     triggerVictoryCelebration() {
         this.playSound('win');
-        this.showBigTemporaryBanner(`🎉 ¡100 PUNTOS COMPLETADOS!`, `¡FELICIDADES! HAN GANADO DINERO RÁPIDO`);
+        this.showBigTemporaryBanner(`🎉 ¡200 PUNTOS COMPLETADOS!`, `¡FELICIDADES! HAN GANADO EL PREMIO MAYOR`);
         this.startFireworks();
     }
 

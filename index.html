@@ -239,7 +239,7 @@
     <main id="fastMoneyArena" class="fast-money-arena" style="display: none; max-width: 1000px; margin: 1.5rem auto; padding: 0 1.5rem;">
         <div class="fast-money-header" style="text-align: center; background: linear-gradient(135deg, #be0b21, #0d1b3e); border: 3px solid #ffd800; border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 12px 35px rgba(0,0,0,0.85);">
             <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; color: #ffd800; text-shadow: 0 0 20px rgba(255,216,0,0.6); letter-spacing: 2px; margin: 0;">🔥 RONDA DE DINERO RÁPIDO 🔥</h2>
-            <p style="color: #9baad8; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-top: 0.3rem;">Dos participantes • Meta: 100 Puntos para ganar</p>
+            <p style="color: #9baad8; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-top: 0.3rem;">Dos participantes • Meta: 200 Puntos para ganar</p>
             
             <!-- CONTROLES DINERO RÁPIDO -->
             <div style="display:flex; justify-content:center; align-items:center; gap: 1.5rem; margin-top: 1rem;">
@@ -293,9 +293,15 @@
             <div class="champion-title">🏆 ¡VICTORIA ABSOLUTA! 🏆</div>
             <p style="color: #9baad8; font-size: 1.1rem; margin-bottom: 0.5rem;">HAN GANADO EL SHOW DE 100 MINEROS DIJERON</p>
             <div id="championTeamName" class="champion-team-name">LOS BARRETEROS</div>
-            <button id="btnRestartMatch" class="btn-start-show" style="font-size: 1.4rem; padding: 0.7rem 2rem;">
-                🔄 NUEVA PARTIDA
-            </button>
+            
+            <div style="display:flex; flex-direction:column; gap:1rem; margin-top:1.5rem;">
+                <button id="btnLaunchFastMoneyFromChampion" class="btn-start-show" style="font-size: 1.6rem; padding: 0.9rem 2.5rem; background: var(--gold-gradient); box-shadow: 0 10px 30px rgba(255, 216, 0, 0.65);">
+                    🔥 JUGAR DINERO RÁPIDO (RONDA FINAL)
+                </button>
+                <button id="btnRestartMatch" class="btn-start-show" style="font-size: 1.2rem; padding: 0.6rem 2rem; background: rgba(14, 33, 84, 0.8); border: 2px solid #3c6fe6; box-shadow: none;">
+                    🔄 INICIAR NUEVA PARTIDA
+                </button>
+            </div>
         </div>
     </div>
 
