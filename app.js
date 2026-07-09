@@ -440,6 +440,11 @@ class MiningGameShow {
             }
         }
 
+        if (cmd.action === 'REQUEST_SYNC') {
+            this.broadcastSyncState();
+            return;
+        }
+
         if (cmd.action === 'TEST_SOUND') {
             this.playSound('button');
             const badge = document.getElementById('cloudStatusBadge');
