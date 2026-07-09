@@ -6,6 +6,7 @@
     <title>CONTROL REMOTO CONDUCTOR - 100 MINEROS DIJERON</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
         body {
             background: #040916;
@@ -29,15 +30,16 @@
             background: #030712;
             border: 1px solid #ffaa00;
             color: #ffaa00;
-            padding: 0.35rem 0.9rem;
+            padding: 0.4rem 1rem;
             border-radius: 999px;
-            font-size: 0.82rem;
+            font-size: 0.85rem;
             font-weight: 800;
             margin-top: 0.5rem;
         }
         .remote-status.connected {
             border-color: #00ff88;
             color: #00ff88;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
         }
         .q-display {
             background: linear-gradient(135deg, #091738 0%, #15327c 100%);
@@ -153,8 +155,11 @@
             📱 CONTROL REMOTO DEL CONDUCTOR
         </h2>
         <div class="remote-status" id="connectionStatus">
-            <span>🟡</span> CONECTANDO A PANTALLA EN VERCEL...
+            <span>🟡</span> BUSCANDO CONEXIÓN CON PANTALLA EN VIVO...
         </div>
+        <button id="btnForceReconnect" style="background:#1b3b8b; border:1px solid #ffd800; color:#fff; border-radius:8px; padding:0.35rem 0.8rem; font-size:0.75rem; font-weight:700; margin-top:0.4rem; cursor:pointer;">
+            🔄 RECONECTAR / SINCRONIZAR
+        </button>
     </div>
 
     <!-- PREGUNTA ACTUAL EN VIVO -->
@@ -212,40 +217,78 @@
         let currentQuestion = MINING_QUESTIONS[0];
         let revealedIndexes = [];
 
-        // 1. Canal local BroadcastChannel (para ventanas en la misma PC)
+        function setConnectedUI() {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.classList.add('connected');
+            statusEl.innerHTML = '<span>🟢</span> CONECTADO A PANTALLA EN VIVO';
+        }
+
+        // ==========================================
+        // MOTOR 1: BroadcastChannel (Misma PC)
+        // ==========================================
         const channel = new BroadcastChannel('bacis_game_channel');
         channel.onmessage = (event) => {
-            const data = event.data;
-            if (data.type === 'SYNC_STATE') {
-                applySyncState(data);
+            if (event.data && event.data.type === 'SYNC_STATE') {
+                setConnectedUI();
+                applySyncState(event.data);
             }
         };
 
-        // 2. Canal EN NUBE MQTT WSS (100% Online en Vercel entre Celular y PC sin instalar nada)
-        const TOPIC_STATE = 'bacis/game/100mineros/live/state';
-        const TOPIC_COMMANDS = 'bacis/game/100mineros/live/commands';
-        const mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-
-        mqttClient.on('connect', () => {
-            const statusEl = document.getElementById('connectionStatus');
-            statusEl.classList.add('connected');
-            statusEl.innerHTML = '<span>🟢</span> CONECTADO EN VIVO A TV';
-
-            mqttClient.subscribe(TOPIC_STATE, (err) => {
-                if (!err) {
-                    sendRemoteCommand('REQUEST_SYNC');
+        // ==========================================
+        // MOTOR 2: PeerJS WebRTC Directo (100% Online)
+        // ==========================================
+        let peerConn = null;
+        try {
+            const peer = new Peer();
+            peer.on('open', () => {
+                peerConn = peer.connect('bacis-tv-bacis2026');
+                if (peerConn) {
+                    peerConn.on('open', () => {
+                        setConnectedUI();
+                        peerConn.send({ type: 'REMOTE_COMMAND', action: 'REQUEST_SYNC' });
+                    });
+                    peerConn.on('data', (data) => {
+                        if (data && data.type === 'SYNC_STATE') {
+                            setConnectedUI();
+                            applySyncState(data);
+                        }
+                    });
                 }
             });
-        });
+        } catch (e) {}
 
-        mqttClient.on('message', (topic, message) => {
-            if (topic === TOPIC_STATE) {
-                try {
-                    const data = JSON.parse(message.toString());
-                    applySyncState(data);
-                } catch (e) {}
-            }
-        });
+        // ==========================================
+        // MOTOR 3: MQTT en Nube WSS (Respaldo universal Vercel)
+        // ==========================================
+        const TOPIC_STATE = 'bacis/game/100mineros/live/state';
+        const TOPIC_COMMANDS = 'bacis/game/100mineros/live/commands';
+        let mqttClient = null;
+
+        function connectMQTT() {
+            try {
+                mqttClient = mqtt.connect('wss://broker.hivemq.com:8884/mqtt', {
+                    reconnectPeriod: 2000,
+                    connectTimeout: 5000
+                });
+
+                mqttClient.on('connect', () => {
+                    setConnectedUI();
+                    mqttClient.subscribe(TOPIC_STATE);
+                    sendRemoteCommand('REQUEST_SYNC');
+                });
+
+                mqttClient.on('message', (topic, message) => {
+                    if (topic === TOPIC_STATE) {
+                        try {
+                            const data = JSON.parse(message.toString());
+                            setConnectedUI();
+                            applySyncState(data);
+                        } catch (e) {}
+                    }
+                });
+            } catch (e) {}
+        }
+        connectMQTT();
 
         function applySyncState(data) {
             if (!data || !data.question) return;
@@ -284,10 +327,15 @@
         function sendRemoteCommand(actionType, payload = {}) {
             const msg = { type: 'REMOTE_COMMAND', action: actionType, ...payload };
             
-            // Envío local
+            // 1. Canal local
             channel.postMessage(msg);
 
-            // Envío por nube en tiempo real (Vercel)
+            // 2. Canal PeerJS WebRTC
+            if (peerConn && peerConn.open) {
+                peerConn.send(msg);
+            }
+
+            // 3. Canal MQTT Nube
             if (mqttClient && mqttClient.connected) {
                 mqttClient.publish(TOPIC_COMMANDS, JSON.stringify(msg));
             }
@@ -301,8 +349,12 @@
         document.getElementById('remAwardT1').addEventListener('click', () => sendRemoteCommand('AWARD_ROUND_T1'));
         document.getElementById('remAwardT2').addEventListener('click', () => sendRemoteCommand('AWARD_ROUND_T2'));
 
-        // Pedir sincronización inicial
-        setTimeout(() => sendRemoteCommand('REQUEST_SYNC'), 500);
+        document.getElementById('btnForceReconnect').addEventListener('click', () => {
+            sendRemoteCommand('REQUEST_SYNC');
+            alert('Enviando solicitud de sincronización a la pantalla principal...');
+        });
+
+        setTimeout(() => sendRemoteCommand('REQUEST_SYNC'), 600);
         renderRemoteScreen();
     </script>
 </body>

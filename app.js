@@ -1,5 +1,5 @@
 // Controlador Principal de "100 MINEROS DIJERON - EDICIÓN GRUPO BACIS"
-// Autor: Antigravity AI - Edición Mejor de 5 Rondas + Control Remoto en Nube 100% Online
+// Autor: Antigravity AI - Edición Mejor de 5 Rondas + Triple Motor Remoto (100% Online Vercel)
 
 class MiningGameShow {
     constructor() {
@@ -8,11 +8,10 @@ class MiningGameShow {
         this.currentQuestionIndex = this.findNextUnplayedIndex(0);
 
         // Canales de sincronización:
-        // 1. BroadcastChannel para misma PC
         this.syncChannel = new BroadcastChannel('bacis_game_channel');
 
-        // 2. MQTT sobre WebSockets (100% en la nube para conectar celular sin instalar Python)
-        this.setupCloudSync();
+        // Triple Motor en Nube (PeerJS + MQTT)
+        this.setupTripleCloudSync();
 
         // Ciclo del Partido (Ronda 1 a 5)
         this.currentMatchRound = 1;
@@ -44,15 +43,37 @@ class MiningGameShow {
         this.renderQuestion();
     }
 
-    setupCloudSync() {
+    setupTripleCloudSync() {
         this.TOPIC_STATE = 'bacis/game/100mineros/live/state';
         this.TOPIC_COMMANDS = 'bacis/game/100mineros/live/commands';
         
+        // 1. PeerJS WebRTC directo
+        try {
+            if (typeof Peer !== 'undefined') {
+                this.peer = new Peer('bacis-tv-bacis2026');
+                this.peer.on('open', () => {
+                    const badge = document.getElementById('cloudStatusBadge');
+                    if (badge) badge.style.borderColor = '#00ff88';
+                });
+                this.peer.on('connection', (conn) => {
+                    this.peerConn = conn;
+                    conn.on('data', (data) => {
+                        if (data && data.type === 'REMOTE_COMMAND') {
+                            this.handleRemoteCommand(data);
+                        }
+                    });
+                    this.broadcastSyncState();
+                });
+            }
+        } catch (e) {}
+
+        // 2. MQTT HiveMQ WSS
         if (typeof mqtt !== 'undefined') {
             try {
-                this.mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+                this.mqttClient = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
                 this.mqttClient.on('connect', () => {
-                    console.log('✅ Conectado en la nube para control remoto desde celular');
+                    const badge = document.getElementById('cloudStatusBadge');
+                    if (badge) badge.textContent = '🟢 NUBE ONLINE (VERCEL)';
                     this.mqttClient.subscribe(this.TOPIC_COMMANDS);
                     this.broadcastSyncState();
                 });
@@ -67,9 +88,7 @@ class MiningGameShow {
                         } catch (e) {}
                     }
                 });
-            } catch (e) {
-                console.log('Modo local activo');
-            }
+            } catch (e) {}
         }
     }
 
@@ -296,13 +315,18 @@ class MiningGameShow {
             revealedIndexes: revealed
         };
 
-        // 1. Emitir localmente
+        // 1. Local
         this.syncChannel.postMessage({
             type: 'SYNC_STATE',
             ...stateObj
         });
 
-        // 2. Emitir a la nube para celulares conectados al Vercel
+        // 2. PeerJS
+        if (this.peerConn && this.peerConn.open) {
+            this.peerConn.send({ type: 'SYNC_STATE', ...stateObj });
+        }
+
+        // 3. MQTT Nube
         if (this.mqttClient && this.mqttClient.connected) {
             this.mqttClient.publish(this.TOPIC_STATE, JSON.stringify(stateObj));
         }
@@ -487,7 +511,7 @@ class MiningGameShow {
             this.cheatSheetItems.appendChild(cheatItem);
         });
 
-        // Enviar estado actualizado al celular del conductor
+        // Enviar estado actualizado por triple motor
         this.broadcastSyncState();
     }
 
