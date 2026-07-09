@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CONTROL REMOTO CONDUCTOR - 100 MINEROS DIJERON</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pubnub@7.4.0/dist/pubnub.min.js"></script>
     <style>
         body {
             background: #040916;
@@ -40,6 +38,35 @@
             border-color: #00ff88;
             color: #00ff88;
             box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+        }
+        .room-config-panel {
+            margin-top: 0.8rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .room-input {
+            background: #040814;
+            border: 1px solid #3c6fe6;
+            color: #fff;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            width: 100px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .btn-room-save {
+            background: #ffd800;
+            color: #000;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-weight: 900;
+            cursor: pointer;
+            font-size: 0.85rem;
         }
         .q-display {
             background: linear-gradient(135deg, #091738 0%, #15327c 100%);
@@ -152,11 +179,18 @@
 
     <div class="remote-header">
         <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: #ffd800; letter-spacing: 1px;">
-            📱 CONTROL REMOTO DEL CONDUCTOR
+            📱 CONTROL REMOTO
         </h2>
         <div class="remote-status" id="connectionStatus">
-            <span>🟡</span> CONECTANDO A NUBE GLOBAL BACIS...
+            <span>🟡</span> CONECTANDO A PANTALLA...
         </div>
+        
+        <div class="room-config-panel">
+            <label for="roomCodeInput" style="font-size: 0.8rem; font-weight: 800; color: #ffd800;">SALA:</label>
+            <input type="text" id="roomCodeInput" class="room-input" value="BACIS100">
+            <button id="btnSaveRoomCode" class="btn-room-save">CONECTAR</button>
+        </div>
+
         <div style="display:flex; justify-content:center; gap:0.6rem; margin-top:0.7rem;">
             <button id="btnTestSoundRemote" style="background:#ffd800; color:#000; border:none; border-radius:10px; padding:0.6rem 1rem; font-size:0.9rem; font-weight:900; cursor:pointer; box-shadow:0 0 15px rgba(255,216,0,0.5);">
                 🔊 PROBAR SONIDO EN TV
@@ -221,11 +255,21 @@
     <script>
         let currentQuestion = MINING_QUESTIONS[0];
         let revealedIndexes = [];
+        let roomCode = localStorage.getItem('bacis_room_code') || 'BACIS100';
+        let eventSource = null;
+
+        document.getElementById('roomCodeInput').value = roomCode;
 
         function setConnectedUI() {
             const statusEl = document.getElementById('connectionStatus');
             statusEl.classList.add('connected');
-            statusEl.innerHTML = '<span>🟢</span> CONECTADO EN VIVO A TV';
+            statusEl.innerHTML = `<span>🟢</span> CONECTADO A SALA: ${roomCode}`;
+        }
+
+        function setDisconnectedUI() {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.classList.remove('connected');
+            statusEl.innerHTML = `<span>🟡</span> BUSCANDO SALA: ${roomCode}`;
         }
 
         // ==========================================
@@ -240,55 +284,40 @@
         };
 
         // ==========================================
-        // 2. MOTOR NUBE GLOBAL: PubNub (100% Online Vercel)
+        // 2. MOTOR NUBE GLOBAL: SSE (ntfy.sh)
         // ==========================================
-        const PUBNUB_CHANNEL = 'bacis-100-mineros-show-2026';
-        let pubnub = null;
-        try {
-            pubnub = new PubNub({
-                publishKey: 'demo',
-                subscribeKey: 'demo',
-                userId: 'bacis-conductor-' + Math.random().toString(36).substr(2, 6)
-            });
-            pubnub.addListener({
-                message: (event) => {
-                    const data = event.message;
-                    if (data && data.type === 'SYNC_STATE') {
-                        setConnectedUI();
-                        applySyncState(data);
-                    }
-                }
-            });
-            pubnub.subscribe({ channels: [PUBNUB_CHANNEL] });
-            setTimeout(() => {
-                setConnectedUI();
-                sendRemoteCommand('REQUEST_SYNC');
-            }, 800);
-        } catch (e) {}
+        function setupCloudSSE() {
+            if (eventSource) {
+                eventSource.close();
+            }
 
-        // ==========================================
-        // 3. MOTOR MQTT WSS PUERTO 8084 (Respaldo)
-        // ==========================================
-        const TOPIC_STATE = 'bacis/game/100mineros/bacis2026/state';
-        const TOPIC_COMMANDS = 'bacis/game/100mineros/bacis2026/commands';
-        let mqttClient = null;
-        try {
-            mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-            mqttClient.on('connect', () => {
+            const topicState = `bacis_100mineros_state_${roomCode.toLowerCase()}`;
+            console.log("Conectando a estado en la nube:", topicState);
+            
+            eventSource = new EventSource(`https://ntfy.sh/${topicState}/sse`);
+            
+            eventSource.onopen = () => {
                 setConnectedUI();
-                mqttClient.subscribe(TOPIC_STATE);
                 sendRemoteCommand('REQUEST_SYNC');
-            });
-            mqttClient.on('message', (t, m) => {
-                if (t === TOPIC_STATE) {
-                    try {
-                        const data = JSON.parse(m.toString());
-                        setConnectedUI();
-                        applySyncState(data);
-                    } catch(e) {}
-                }
-            });
-        } catch (e) {}
+            };
+
+            eventSource.onerror = () => {
+                setDisconnectedUI();
+            };
+
+            eventSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data && data.message) {
+                        const state = JSON.parse(data.message);
+                        if (state && state.type === 'SYNC_STATE') {
+                            setConnectedUI();
+                            applySyncState(state);
+                        }
+                    }
+                } catch(e) {}
+            };
+        }
 
         function applySyncState(data) {
             if (!data || !data.question) return;
@@ -327,22 +356,26 @@
         function sendRemoteCommand(actionType, payload = {}) {
             const msg = { type: 'REMOTE_COMMAND', action: actionType, ...payload };
             
-            // 1. BroadcastChannel local
+            // 1. Local
             channel.postMessage(msg);
 
-            // 2. PubNub Cloud Global
-            if (pubnub) {
-                pubnub.publish({
-                    channel: PUBNUB_CHANNEL,
-                    message: msg
-                }).catch(e => {});
-            }
-
-            // 3. MQTT EMQX WSS 8084
-            if (mqttClient) {
-                try { mqttClient.publish(TOPIC_COMMANDS, JSON.stringify(msg)); } catch(e) {}
-            }
+            // 2. Nube SSE Command
+            const topicCommands = `bacis_100mineros_cmd_${roomCode.toLowerCase()}`;
+            fetch(`https://ntfy.sh/${topicCommands}`, {
+                method: 'POST',
+                body: JSON.stringify(msg)
+            }).catch(() => {});
         }
+
+        document.getElementById('btnSaveRoomCode').addEventListener('click', () => {
+            const val = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+            if (val !== '') {
+                roomCode = val;
+                localStorage.setItem('bacis_room_code', roomCode);
+                setupCloudSSE();
+                alert(`Conectado a la sala: ${roomCode}. Asegúrate que la televisión muestre este mismo código.`);
+            }
+        });
 
         document.getElementById('btnTestSoundRemote').addEventListener('click', () => {
             sendRemoteCommand('TEST_SOUND');
@@ -360,7 +393,7 @@
         document.getElementById('remAwardT1').addEventListener('click', () => sendRemoteCommand('AWARD_ROUND_T1'));
         document.getElementById('remAwardT2').addEventListener('click', () => sendRemoteCommand('AWARD_ROUND_T2'));
 
-        setTimeout(() => sendRemoteCommand('REQUEST_SYNC'), 500);
+        setupCloudSSE();
         renderRemoteScreen();
     </script>
 </body>

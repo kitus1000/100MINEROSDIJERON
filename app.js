@@ -1,5 +1,5 @@
 // Controlador Principal de "100 MINEROS DIJERON - EDICIÓN GRUPO BACIS"
-// Autor: Antigravity AI - Edición Nube Global PubNub + MQTT
+// Autor: Antigravity AI - Edición Sincronización SSE en Nube Directa (ntfy.sh)
 
 class MiningGameShow {
     constructor() {
@@ -7,9 +7,16 @@ class MiningGameShow {
         this.playedIds = this.loadPlayedIds();
         this.currentQuestionIndex = this.findNextUnplayedIndex(0);
 
+        // Canal local BroadcastChannel
         this.syncChannel = new BroadcastChannel('bacis_game_channel');
-        this.setupPubNubAndMqttSync();
 
+        // Código de Sala para sincronización remota
+        this.roomCode = localStorage.getItem('bacis_room_code') || 'BACIS100';
+
+        // Inicializar sincronización en la nube (ntfy.sh)
+        this.setupCloudSyncSSE();
+
+        // Ciclo del Partido (Ronda 1 a 5)
         this.currentMatchRound = 1;
         this.roundPot = 0;
         this.team1RoundsWon = 0;
@@ -19,9 +26,11 @@ class MiningGameShow {
         this.currentStrikes = 0;
         this.soundEnabled = true;
 
+        // Temporizador
         this.timerInterval = null;
         this.timeLeft = 10;
 
+        // Elementos de audio
         this.sounds = {
             intro: new Audio('a-jugar-100-mexicanos-dijeron_uzh3r4B.mp3'),
             button: new Audio('boton-10-mexicanos-digieron.mp3'),
@@ -37,58 +46,51 @@ class MiningGameShow {
         this.renderQuestion();
     }
 
-    setupPubNubAndMqttSync() {
-        this.PUBNUB_CHANNEL = 'bacis-100-mineros-show-2026';
-        this.TOPIC_STATE = 'bacis/game/100mineros/bacis2026/state';
-        this.TOPIC_COMMANDS = 'bacis/game/100mineros/bacis2026/commands';
-
-        // 1. PubNub Global Cloud
-        try {
-            if (typeof PubNub !== 'undefined') {
-                this.pubnub = new PubNub({
-                    publishKey: 'demo',
-                    subscribeKey: 'demo',
-                    userId: 'bacis-tv-screen'
-                });
-                this.pubnub.addListener({
-                    message: (event) => {
-                        const cmd = event.message;
-                        if (cmd && cmd.action) {
-                            this.handleRemoteCommand(cmd);
-                        }
-                    }
-                });
-                this.pubnub.subscribe({ channels: [this.PUBNUB_CHANNEL] });
-            }
-        } catch (e) {}
-
-        // 2. MQTT EMQX WSS Port 8084
-        if (typeof mqtt !== 'undefined') {
-            try {
-                this.mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-                this.mqttClient.on('connect', () => {
-                    const badge = document.getElementById('cloudStatusBadge');
-                    if (badge) {
-                        badge.style.borderColor = '#00ff88';
-                        badge.style.color = '#00ff88';
-                        badge.textContent = '🟢 NUBE BACIS ACTIVA';
-                    }
-                    this.mqttClient.subscribe(this.TOPIC_COMMANDS);
-                    this.broadcastSyncState();
-                });
-
-                this.mqttClient.on('message', (topic, message) => {
-                    if (topic === this.TOPIC_COMMANDS) {
-                        try {
-                            const cmd = JSON.parse(message.toString());
-                            if (cmd && cmd.action) {
-                                this.handleRemoteCommand(cmd);
-                            }
-                        } catch (e) {}
-                    }
-                });
-            } catch (e) {}
+    setupCloudSyncSSE() {
+        // Cerrar conexión previa si existe
+        if (this.eventSource) {
+            this.eventSource.close();
         }
+
+        const topicCommands = `bacis_100mineros_cmd_${this.roomCode.toLowerCase()}`;
+        console.log(`🔌 Conectando a comandos en la nube: ntfy.sh/${topicCommands}`);
+
+        this.eventSource = new EventSource(`https://ntfy.sh/${topicCommands}/sse`);
+        
+        this.eventSource.onopen = () => {
+            const badge = document.getElementById('cloudStatusBadge');
+            if (badge) {
+                badge.style.borderColor = '#00ff88';
+                badge.style.color = '#00ff88';
+                badge.textContent = `🟢 NUBE ACTIVA (SALA: ${this.roomCode})`;
+            }
+        };
+
+        this.eventSource.onerror = () => {
+            const badge = document.getElementById('cloudStatusBadge');
+            if (badge) {
+                badge.style.borderColor = '#ff4e62';
+                badge.style.color = '#ff4e62';
+                badge.textContent = `🔴 ERROR DE CONEXIÓN`;
+            }
+        };
+
+        this.eventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data && data.message) {
+                    const cmd = JSON.parse(data.message);
+                    if (cmd && cmd.type === 'REMOTE_COMMAND') {
+                        this.handleRemoteCommand(cmd);
+                    }
+                }
+            } catch (e) {
+                // Mensaje de sistema o formato no JSON
+            }
+        };
+
+        // Enviar estado inicial
+        setTimeout(() => this.broadcastSyncState(), 1000);
     }
 
     loadQuestions() {
@@ -264,6 +266,20 @@ class MiningGameShow {
             e.preventDefault();
             this.handleCustomQuestionSubmit();
         });
+
+        // Configuración de Código de Sala en la UI si el usuario hace clic en el indicador de nube
+        const cloudBadge = document.getElementById('cloudStatusBadge');
+        if (cloudBadge) {
+            cloudBadge.addEventListener('click', () => {
+                const newCode = prompt('Introduce un código de sala único para conectar con tu celular:', this.roomCode);
+                if (newCode && newCode.trim() !== '') {
+                    this.roomCode = newCode.trim().toUpperCase();
+                    localStorage.setItem('bacis_room_code', this.roomCode);
+                    this.setupCloudSyncSSE();
+                    alert(`Sala cambiada a: ${this.roomCode}. Asegúrate de poner el mismo código en tu celular.`);
+                }
+            });
+        }
     }
 
     setupRemoteListener() {
@@ -282,13 +298,14 @@ class MiningGameShow {
             this.playSound('button');
             const badge = document.getElementById('cloudStatusBadge');
             if (badge) {
+                const prevText = badge.textContent;
                 badge.style.background = '#ffd800';
                 badge.style.color = '#000';
                 badge.textContent = '⚡ ¡COMANDO REMOTO RECIBIDO!';
                 setTimeout(() => {
                     badge.style.background = '#0b1836';
                     badge.style.color = '#00ff88';
-                    badge.textContent = '🟢 NUBE BACIS ACTIVA';
+                    badge.textContent = prevText;
                 }, 1500);
             }
         } else if (cmd.action === 'REVEAL_CARD') {
@@ -327,21 +344,18 @@ class MiningGameShow {
             revealedIndexes: revealed
         };
 
+        // 1. Local
         this.syncChannel.postMessage({
             type: 'SYNC_STATE',
             ...stateObj
         });
 
-        if (this.pubnub) {
-            this.pubnub.publish({
-                channel: this.PUBNUB_CHANNEL,
-                message: { type: 'SYNC_STATE', ...stateObj }
-            }).catch(e => {});
-        }
-
-        if (this.mqttClient) {
-            try { this.mqttClient.publish(this.TOPIC_STATE, JSON.stringify(stateObj)); } catch(e) {}
-        }
+        // 2. Nube SSE (ntfy.sh)
+        const topicState = `bacis_100mineros_state_${this.roomCode.toLowerCase()}`;
+        fetch(`https://ntfy.sh/${topicState}`, {
+            method: 'POST',
+            body: JSON.stringify({ type: 'SYNC_STATE', ...stateObj })
+        }).catch(() => {});
     }
 
     nextQuestionAction() {
