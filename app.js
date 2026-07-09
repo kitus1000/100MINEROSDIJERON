@@ -338,6 +338,8 @@ class MiningGameShow {
             this.awardRoundTeam2();
         } else if (cmd.action === 'SET_ACTIVE_TEAM') {
             this.setActiveTeam(cmd.team);
+        } else if (cmd.action === 'SKIP_QUESTION') {
+            this.skipCurrentQuestion();
         } else if (cmd.action === 'REQUEST_SYNC') {
             this.broadcastSyncState();
         }
@@ -415,6 +417,18 @@ class MiningGameShow {
             this.updateActiveTeamUI();
             this.renderQuestion();
             this.showRoundAnnouncement(this.currentMatchRound);
+        });
+    }
+
+    skipCurrentQuestion() {
+        this.triggerQuestionTransition(() => {
+            const nextIdx = this.findNextUnplayedIndex((this.currentQuestionIndex + 1) % this.questions.length);
+            this.currentQuestionIndex = nextIdx;
+            this.activeTeam = null;
+            this.stealMode = false;
+            this.currentStrikes = 0;
+            this.updateActiveTeamUI();
+            this.renderQuestion();
         });
     }
 
