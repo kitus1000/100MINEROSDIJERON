@@ -6,6 +6,7 @@
     <title>100 MINEROS DIJERON - EDICIÓN GRUPO BACIS</title>
     <meta name="description" content="Juego de televisión 100 Mineros Dijeron al Mejor de 5 Rondas para Grupo Bacis.">
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 </head>
 <body>
 
@@ -46,7 +47,7 @@
         </div>
     </section>
 
-    <!-- ANUNCIO GIGANTE DE INICIO DE RONDA (A PANTALLA COMPLETA) -->
+    <!-- ANUNCIO GIGANTE DE INICIO DE RONDA -->
     <div id="roundAnnouncementOverlay" class="round-announcement-overlay">
         <div id="bigRoundNumberText" class="big-round-number">🌟 RONDA 1</div>
         <div id="bigRoundSubText" class="big-round-subtitle">¡PRIMERA PREGUNTA SORPRESA!</div>
@@ -99,7 +100,7 @@
         </div>
     </header>
 
-    <!-- FRANJA DE RONDA SORPRESA Y RELOJ DE CUENTA REGRESIVA -->
+    <!-- FRANJA DE RONDA Y RELOJ -->
     <section class="surprise-banner-strip">
         <div id="surpriseBadge" class="surprise-badge">
             <span>🎁</span> RONDA 1 DE 5
@@ -222,12 +223,12 @@
 
     </main>
 
-    <!-- OVERLAY DRAMÁTICO DE TACHE (ERROR) -->
+    <!-- OVERLAY DRAMÁTICO DE TACHE -->
     <div id="strikeOverlay" class="strike-overlay">
         <div id="strikeContainer" class="strike-container"></div>
     </div>
 
-    <!-- MODAL DE CAMPEONES DEL PARTIDO (3 DE 5 GANADOS) -->
+    <!-- MODAL DE CAMPEONES DEL PARTIDO -->
     <div id="championOverlay" class="champion-overlay">
         <div class="champion-card">
             <div class="champion-title">🏆 ¡VICTORIA ABSOLUTA! 🏆</div>
@@ -252,7 +253,7 @@
             <div style="display: flex; flex-direction: column; gap: 1rem;">
                 <a href="conductor.html" target="_blank" style="text-decoration:none;">
                     <button class="btn-glow btn-gold" style="width:100%; justify-content: center; padding: 1rem; font-size:1.05rem;">
-                        📱 ABRIR VISTA DEL CONDUCTOR (CONTROL REMOTO DE PANTALLA)
+                        📱 ABRIR VISTA DEL CONDUCTOR (CONTROL REMOTO EN NUBE / CELULAR)
                     </button>
                 </a>
                 <a href="guia-conductor.html" target="_blank" style="text-decoration:none;">

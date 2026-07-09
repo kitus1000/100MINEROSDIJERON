@@ -1,5 +1,5 @@
 // Controlador Principal de "100 MINEROS DIJERON - EDICIÓN GRUPO BACIS"
-// Autor: Antigravity AI - Edición Mejor de 5 Rondas + Control Remoto Conductor
+// Autor: Antigravity AI - Edición Mejor de 5 Rondas + Control Remoto en Nube 100% Online
 
 class MiningGameShow {
     constructor() {
@@ -7,8 +7,12 @@ class MiningGameShow {
         this.playedIds = this.loadPlayedIds();
         this.currentQuestionIndex = this.findNextUnplayedIndex(0);
 
-        // Canal de sincronización con celular del conductor
+        // Canales de sincronización:
+        // 1. BroadcastChannel para misma PC
         this.syncChannel = new BroadcastChannel('bacis_game_channel');
+
+        // 2. MQTT sobre WebSockets (100% en la nube para conectar celular sin instalar Python)
+        this.setupCloudSync();
 
         // Ciclo del Partido (Ronda 1 a 5)
         this.currentMatchRound = 1;
@@ -38,6 +42,35 @@ class MiningGameShow {
         this.setupRemoteListener();
         this.createFloatingParticles();
         this.renderQuestion();
+    }
+
+    setupCloudSync() {
+        this.TOPIC_STATE = 'bacis/game/100mineros/live/state';
+        this.TOPIC_COMMANDS = 'bacis/game/100mineros/live/commands';
+        
+        if (typeof mqtt !== 'undefined') {
+            try {
+                this.mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+                this.mqttClient.on('connect', () => {
+                    console.log('✅ Conectado en la nube para control remoto desde celular');
+                    this.mqttClient.subscribe(this.TOPIC_COMMANDS);
+                    this.broadcastSyncState();
+                });
+
+                this.mqttClient.on('message', (topic, message) => {
+                    if (topic === this.TOPIC_COMMANDS) {
+                        try {
+                            const cmd = JSON.parse(message.toString());
+                            if (cmd && cmd.action) {
+                                this.handleRemoteCommand(cmd);
+                            }
+                        } catch (e) {}
+                    }
+                });
+            } catch (e) {
+                console.log('Modo local activo');
+            }
+        }
     }
 
     loadQuestions() {
@@ -215,7 +248,6 @@ class MiningGameShow {
         });
     }
 
-    // ESCUCHAR COMANDOS DEL CELULAR EN TIEMPO REAL
     setupRemoteListener() {
         this.syncChannel.onmessage = (event) => {
             const data = event.data;
@@ -225,15 +257,6 @@ class MiningGameShow {
                 this.handleRemoteCommand(data);
             }
         };
-
-        // Sondeo del servidor local para celular conectado en Wi-Fi
-        setInterval(() => {
-            fetch('/poll-command').then(r => r.json()).then(cmd => {
-                if (cmd && cmd.action) {
-                    this.handleRemoteCommand(cmd);
-                }
-            }).catch(() => {});
-        }, 600);
     }
 
     handleRemoteCommand(cmd) {
@@ -254,6 +277,8 @@ class MiningGameShow {
             this.awardRoundTeam1();
         } else if (cmd.action === 'AWARD_ROUND_T2') {
             this.awardRoundTeam2();
+        } else if (cmd.action === 'REQUEST_SYNC') {
+            this.broadcastSyncState();
         }
     }
 
@@ -271,16 +296,16 @@ class MiningGameShow {
             revealedIndexes: revealed
         };
 
+        // 1. Emitir localmente
         this.syncChannel.postMessage({
             type: 'SYNC_STATE',
             ...stateObj
         });
 
-        fetch('/update-state', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(stateObj)
-        }).catch(() => {});
+        // 2. Emitir a la nube para celulares conectados al Vercel
+        if (this.mqttClient && this.mqttClient.connected) {
+            this.mqttClient.publish(this.TOPIC_STATE, JSON.stringify(stateObj));
+        }
     }
 
     nextQuestionAction() {

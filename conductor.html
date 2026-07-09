@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CONTROL REMOTO CONDUCTOR - 100 MINEROS DIJERON</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
         body {
             background: #040916;
@@ -26,13 +27,17 @@
             align-items: center;
             gap: 0.4rem;
             background: #030712;
-            border: 1px solid #00ff88;
-            color: #00ff88;
-            padding: 0.3rem 0.8rem;
+            border: 1px solid #ffaa00;
+            color: #ffaa00;
+            padding: 0.35rem 0.9rem;
             border-radius: 999px;
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             font-weight: 800;
             margin-top: 0.5rem;
+        }
+        .remote-status.connected {
+            border-color: #00ff88;
+            color: #00ff88;
         }
         .q-display {
             background: linear-gradient(135deg, #091738 0%, #15327c 100%);
@@ -148,7 +153,7 @@
             📱 CONTROL REMOTO DEL CONDUCTOR
         </h2>
         <div class="remote-status" id="connectionStatus">
-            <span>🟢</span> EN VIVO CON PANTALLA PRINCIPAL
+            <span>🟡</span> CONECTANDO A PANTALLA EN VERCEL...
         </div>
     </div>
 
@@ -157,12 +162,12 @@
         <span id="remoteRoundBadge" style="background:#ffd800; color:#000; font-family:'Bebas Neue'; font-size:1.1rem; padding:0.2rem 0.8rem; border-radius:999px;">
             🎁 RONDA 1 DE 5
         </span>
-        <div id="remoteQuestionText" class="q-text">Cargando pregunta en vivo...</div>
+        <div id="remoteQuestionText" class="q-text">Sincronizando pregunta con la pantalla principal...</div>
     </div>
 
     <!-- BOTONES DE RESPUESTAS PARA DESTAPAR DIRECTAMENTE DESDE EL CELULAR -->
     <div style="font-size: 0.85rem; color: #9baad8; font-weight: 800; margin-bottom: 0.5rem; text-transform: uppercase;">
-        👇 Toca una respuesta para destaparla en la pantalla de TV:
+        👇 Toca una respuesta para destaparla en la televisión:
     </div>
     <div id="remoteAnswersGrid" class="answers-remote-grid"></div>
 
@@ -204,24 +209,51 @@
 
     <script src="questions.js"></script>
     <script>
-        // CANAL DE SINCRONIZACIÓN EN TIEMPO REAL
-        const channel = new BroadcastChannel('bacis_game_channel');
         let currentQuestion = MINING_QUESTIONS[0];
         let revealedIndexes = [];
 
-        // Escuchar estados que manda la pantalla de TV
+        // 1. Canal local BroadcastChannel (para ventanas en la misma PC)
+        const channel = new BroadcastChannel('bacis_game_channel');
         channel.onmessage = (event) => {
             const data = event.data;
             if (data.type === 'SYNC_STATE') {
-                currentQuestion = data.question;
-                revealedIndexes = data.revealedIndexes || [];
-                document.getElementById('remoteRoundBadge').textContent = `🎁 RONDA ${data.round} DE 5`;
-                renderRemoteScreen();
+                applySyncState(data);
             }
         };
 
-        // Pedir estado inicial a la pantalla principal
-        channel.postMessage({ type: 'REQUEST_SYNC' });
+        // 2. Canal EN NUBE MQTT WSS (100% Online en Vercel entre Celular y PC sin instalar nada)
+        const TOPIC_STATE = 'bacis/game/100mineros/live/state';
+        const TOPIC_COMMANDS = 'bacis/game/100mineros/live/commands';
+        const mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+
+        mqttClient.on('connect', () => {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.classList.add('connected');
+            statusEl.innerHTML = '<span>🟢</span> CONECTADO EN VIVO A TV';
+
+            mqttClient.subscribe(TOPIC_STATE, (err) => {
+                if (!err) {
+                    sendRemoteCommand('REQUEST_SYNC');
+                }
+            });
+        });
+
+        mqttClient.on('message', (topic, message) => {
+            if (topic === TOPIC_STATE) {
+                try {
+                    const data = JSON.parse(message.toString());
+                    applySyncState(data);
+                } catch (e) {}
+            }
+        });
+
+        function applySyncState(data) {
+            if (!data || !data.question) return;
+            currentQuestion = data.question;
+            revealedIndexes = data.revealedIndexes || [];
+            document.getElementById('remoteRoundBadge').textContent = `🎁 RONDA ${data.round || 1} DE 5`;
+            renderRemoteScreen();
+        }
 
         function renderRemoteScreen() {
             if (!currentQuestion) return;
@@ -241,7 +273,6 @@
                 `;
 
                 card.addEventListener('click', () => {
-                    // Enviar comando para destapar tarjeta en la TV
                     sendRemoteCommand('REVEAL_CARD', { cardIndex: idx });
                     card.classList.add('revealed');
                 });
@@ -252,14 +283,14 @@
 
         function sendRemoteCommand(actionType, payload = {}) {
             const msg = { type: 'REMOTE_COMMAND', action: actionType, ...payload };
+            
+            // Envío local
             channel.postMessage(msg);
 
-            // Sincronización alterna por servidor HTTP local (si está corriendo servidor-wifi.py)
-            fetch('/remote-command', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(msg)
-            }).catch(() => {});
+            // Envío por nube en tiempo real (Vercel)
+            if (mqttClient && mqttClient.connected) {
+                mqttClient.publish(TOPIC_COMMANDS, JSON.stringify(msg));
+            }
         }
 
         document.getElementById('remBtnStrike').addEventListener('click', () => sendRemoteCommand('TRIGGER_STRIKE'));
@@ -270,17 +301,9 @@
         document.getElementById('remAwardT1').addEventListener('click', () => sendRemoteCommand('AWARD_ROUND_T1'));
         document.getElementById('remAwardT2').addEventListener('click', () => sendRemoteCommand('AWARD_ROUND_T2'));
 
-        // Sondeo del servidor local para celular en Wi-Fi
-        setInterval(() => {
-            fetch('/get-state').then(r => r.json()).then(data => {
-                if (data && data.question) {
-                    currentQuestion = data.question;
-                    revealedIndexes = data.revealedIndexes || [];
-                    document.getElementById('remoteRoundBadge').textContent = `🎁 RONDA ${data.round || 1} DE 5`;
-                    renderRemoteScreen();
-                }
-            }).catch(() => {});
-        }, 800);
+        // Pedir sincronización inicial
+        setTimeout(() => sendRemoteCommand('REQUEST_SYNC'), 500);
+        renderRemoteScreen();
     </script>
 </body>
 </html>
