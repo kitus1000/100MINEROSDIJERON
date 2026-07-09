@@ -35,6 +35,7 @@ class FireworkParticle {
 
 class MiningGameShow {
     constructor() {
+        this.selectedPackage = 'all';
         this.questions = this.loadQuestions();
         this.playedIds = this.loadPlayedIds();
         this.currentQuestionIndex = this.findNextUnplayedIndex(0);
@@ -162,6 +163,21 @@ class MiningGameShow {
         return array;
     }
 
+    filterQuestionsByPackage() {
+        const rawQuestions = this.loadQuestions();
+        if (this.selectedPackage === 'all') {
+            this.questions = this.shuffleQuestions([...rawQuestions]);
+        } else {
+            const pkg = Number(this.selectedPackage);
+            // Dividir las 65 preguntas en 5 paquetes de 13 preguntas cada uno
+            const startIdx = (pkg - 1) * 13;
+            const endIdx = startIdx + 13;
+            const filtered = rawQuestions.slice(startIdx, endIdx);
+            this.questions = this.shuffleQuestions([...filtered]);
+        }
+        this.currentQuestionIndex = 0; // Iniciar en el primer elemento del paquete filtrado
+    }
+
     loadQuestions() {
         const saved = localStorage.getItem('bacis_100_mineros_questions');
         if (saved) {
@@ -234,10 +250,21 @@ class MiningGameShow {
     }
 
     bindEvents() {
+        const pkgSelect = document.getElementById('packageSelect');
+        if (pkgSelect) {
+            pkgSelect.addEventListener('change', (e) => {
+                this.selectedPackage = e.target.value;
+            });
+        }
+
         document.getElementById('btnStartShow').addEventListener('click', () => {
             this.introScreen.classList.add('hidden');
             this.playSound('intro');
             this.currentMatchRound = 1;
+            
+            // Filtrar preguntas por paquete antes de barajar y renderizar
+            this.filterQuestionsByPackage();
+            
             this.renderQuestion();
             this.showRoundAnnouncement(1);
         });

@@ -11,8 +11,8 @@
 </head>
 <body>
 
-    <!-- CANVAS DE FUEGOS ARTIFICIALES -->
-    <canvas id="fireworksCanvas" style="position: fixed; inset: 0; pointer-events: none; z-index: 9999; display: none;"></canvas>
+    <!-- CANVAS DE FUEGOS ARTIFICIALES CON Z-INDEX AJUSTADO DETRÁS DE TEXTO DE GANADORES -->
+    <canvas id="fireworksCanvas" style="position: fixed; inset: 0; pointer-events: none; z-index: 1500; display: none;"></canvas>
 
     <!-- FONDO DE PARTÍCULAS DORADAS FLOTANTES -->
     <div id="particlesBg" class="particles-bg"></div>
@@ -41,6 +41,22 @@
         </div>
         <h1 class="intro-show-title">100 MINEROS DIJERON</h1>
         <p class="intro-subtitle">EDICIÓN OFICIAL • MINA DE BACIS • MEJOR DE 5 RONDAS</p>
+
+        <!-- SELECCIONADOR DE PAQUETES DE PREGUNTAS -->
+        <div class="package-selector-wrapper" style="margin-bottom: 2rem;">
+            <label for="packageSelect" style="display:block; font-weight:800; color:#8ab4ff; margin-bottom:0.5rem; letter-spacing:1.5px; text-transform:uppercase; font-size:0.9rem;">
+                📦 SELECCIONA EL PAQUETE DE PREGUNTAS PARA LA PARTIDA:
+            </label>
+            <select id="packageSelect" style="background:#0c1836; border:2px solid #ffd800; color:#fff; padding:0.8rem 1.5rem; border-radius:12px; font-weight:800; font-size:1.1rem; text-align:center; width:360px; cursor:pointer; outline:none; box-shadow:0 0 15px rgba(255,216,0,0.2); font-family: 'Outfit', sans-serif;">
+                <option value="all">TODAS LAS PREGUNTAS JUNTAS (1-65)</option>
+                <option value="1">PAQUETE 1 (Vida Familiar y Hogar)</option>
+                <option value="2">PAQUETE 2 (Modismos y Dichos Mineros)</option>
+                <option value="3">PAQUETE 3 (Mina y Maquinaria)</option>
+                <option value="4">PAQUETE 4 (Planta y Geología)</option>
+                <option value="5">PAQUETE 5 (Seguridad y Salud)</option>
+            </select>
+        </div>
+
         <div class="intro-buttons">
             <button id="btnStartShow" class="btn-start-show">
                 🎬 COMENZAR EL SHOW
