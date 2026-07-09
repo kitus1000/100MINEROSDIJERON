@@ -123,8 +123,8 @@
             <span id="cloudStatusBadge" style="background:#0b1836; border:1px solid #00ff88; color:#00ff88; font-size:0.75rem; font-weight:800; padding:0.4rem 0.8rem; border-radius:999px; cursor:pointer;">
                 🟢 NUBE BACIS ACTIVA
             </span>
-            <button id="btnToggleFastMoney" class="btn-glow btn-gold" title="Activa la ronda de dinero rápido">
-                <span>🔥 DINERO RÁPIDO</span>
+            <button id="btnToggleFastMoney" class="btn-glow btn-gold" title="Activa la ronda final">
+                <span>🔥 RONDA FINAL</span>
             </button>
             <button id="btnPlayIntro" class="btn-glow" title="Música del programa">
                 <span>🎵 INTRO</span>
@@ -262,14 +262,14 @@
     </main>
 
     <!-- =========================================
-       SECCIÓN DE LA RONDA FINAL: DINERO RÁPIDO
+       SECCIÓN DE LA RONDA FINAL: RONDA FINAL (DRAMÁTICA)
        ========================================= -->
     <main id="fastMoneyArena" class="fast-money-arena" style="display: none; max-width: 1000px; margin: 1.5rem auto; padding: 0 1.5rem;">
         <div class="fast-money-header" style="text-align: center; background: linear-gradient(135deg, #be0b21, #0d1b3e); border: 3px solid #ffd800; border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 12px 35px rgba(0,0,0,0.85);">
-            <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; color: #ffd800; text-shadow: 0 0 20px rgba(255,216,0,0.6); letter-spacing: 2px; margin: 0;">🔥 RONDA DE DINERO RÁPIDO 🔥</h2>
-            <p style="color: #9baad8; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-top: 0.3rem;">Dos participantes • Meta: 200 Puntos para ganar</p>
+            <h2 class="grand-final-title" style="font-family: 'Bebas Neue', sans-serif; font-size: 4rem; color: #ffd800; letter-spacing: 2px; margin: 0; animation: fireGlow 1.5s infinite alternate;">🔥 LA GRAN RONDA FINAL 🔥</h2>
+            <p style="color: #ffffff; font-weight: 900; text-transform: uppercase; letter-spacing: 2.5px; margin-top: 0.3rem; font-size: 1.1rem; text-shadow: 0 0 10px rgba(255,255,255,0.4);">Dos participantes • META DE INFARTO: ¡200 PUNTOS O NADA! 🏆</p>
             
-            <!-- CONTROLES DINERO RÁPIDO -->
+            <!-- CONTROLES RONDA FINAL -->
             <div style="display:flex; justify-content:center; align-items:center; gap: 1.5rem; margin-top: 1rem;">
                 <div class="fast-timer-panel" style="background:#040814; border: 2px solid #ffd800; padding:0.4rem 1.5rem; border-radius:12px; display:flex; align-items:center; gap: 1rem;">
                     <span style="font-weight:900; color:#fff; font-size:1.1rem;">⏱️ TIEMPO:</span>
@@ -281,7 +281,7 @@
             </div>
         </div>
 
-        <!-- TABLERO DINERO RÁPIDO -->
+        <!-- TABLERO RONDA FINAL -->
         <div class="fast-board-frame" style="background:#060c1d; border: 8px solid #0f2355; border-radius:24px; padding: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.85); position:relative;">
             <div class="led-lights"></div>
             
@@ -317,14 +317,14 @@
 
     <!-- MODAL DE CAMPEONES DEL PARTIDO -->
     <div id="championOverlay" class="champion-overlay">
-        <div class="champion-card">
-            <div class="champion-title">🏆 ¡VICTORIA ABSOLUTA! 🏆</div>
+        <div class="champion-card" style="animation: pulseChampionCard 2s infinite alternate; border-color: #ffd800;">
+            <div class="champion-title" style="animation: fireGlow 1s infinite alternate;">🏆 ¡VICTORIA ABSOLUTA! 🏆</div>
             <p style="color: #9baad8; font-size: 1.1rem; margin-bottom: 0.5rem;">HAN GANADO EL SHOW DE 100 MINEROS DIJERON</p>
-            <div id="championTeamName" class="champion-team-name">LOS BARRETEROS</div>
+            <div id="championTeamName" class="champion-team-name" style="text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);">LOS BARRETEROS</div>
             
             <div style="display:flex; flex-direction:column; gap:1rem; margin-top:1.5rem;">
-                <button id="btnLaunchFastMoneyFromChampion" class="btn-start-show" style="font-size: 1.6rem; padding: 0.9rem 2.5rem; background: var(--gold-gradient); box-shadow: 0 10px 30px rgba(255, 216, 0, 0.65);">
-                    🔥 JUGAR DINERO RÁPIDO (RONDA FINAL)
+                <button id="btnLaunchFastMoneyFromChampion" class="btn-start-show" style="font-size: 1.6rem; padding: 0.9rem 2.5rem; background: var(--gold-gradient); box-shadow: 0 10px 30px rgba(255, 216, 0, 0.65); animation: pulseChampionButton 1s infinite alternate;">
+                    🔥 ¡IR A LA GRAN RONDA FINAL! 🔥
                 </button>
                 <button id="btnRestartMatch" class="btn-start-show" style="font-size: 1.2rem; padding: 0.6rem 2rem; background: rgba(14, 33, 84, 0.8); border: 2px solid #3c6fe6; box-shadow: none;">
                     🔄 INICIAR NUEVA PARTIDA

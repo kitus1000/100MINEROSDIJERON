@@ -105,6 +105,7 @@ class MiningGameShow {
             win: new Audio('triunfo-100-mexicanos-dijeron.mp3')
         };
 
+        this.processedCommandIds = new Set();
         this.initDOM();
         this.bindEvents();
         this.setupRemoteListener();
@@ -428,6 +429,17 @@ class MiningGameShow {
     }
 
     handleRemoteCommand(cmd) {
+        if (cmd && cmd.id) {
+            if (this.processedCommandIds.has(cmd.id)) {
+                return; // Ignorar comando duplicado
+            }
+            this.processedCommandIds.add(cmd.id);
+            if (this.processedCommandIds.size > 100) {
+                const first = this.processedCommandIds.values().next().value;
+                this.processedCommandIds.delete(first);
+            }
+        }
+
         if (cmd.action === 'TEST_SOUND') {
             this.playSound('button');
             const badge = document.getElementById('cloudStatusBadge');
@@ -923,7 +935,7 @@ class MiningGameShow {
             this.normalGameArena.style.display = 'grid';
             this.normalGameStrip.style.display = 'flex';
             this.fastMoneyArena.style.display = 'none';
-            document.getElementById('btnToggleFastMoney').textContent = '🔥 DINERO RÁPIDO';
+            document.getElementById('btnToggleFastMoney').textContent = '🔥 RONDA FINAL';
         }
         
         this.playSound('button');
@@ -1019,7 +1031,7 @@ class MiningGameShow {
 
     triggerVictoryCelebration() {
         this.playSound('win');
-        this.showBigTemporaryBanner(`🎉 ¡200 PUNTOS COMPLETADOS!`, `¡FELICIDADES! HAN GANADO EL PREMIO MAYOR`);
+        this.showBigTemporaryBanner(`💥 ¡200 PUNTOS ALCANZADOS! 💥`, `🏆 ¡HISTÓRICO! EL PREMIO MAYOR ES SUYO 🏆`);
         this.startFireworks();
     }
 

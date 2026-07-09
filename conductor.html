@@ -224,7 +224,7 @@
                 🔊 PROBAR SONIDO EN TV
             </button>
             <button id="btnToggleFastMoneyRemote" style="background:#be0b21; border:1px solid #ffd800; color:#fff; border-radius:10px; padding:0.6rem 1rem; font-size:0.9rem; font-weight:800; cursor:pointer;">
-                🔥 DINERO RÁPIDO
+                🔥 RONDA FINAL
             </button>
         </div>
     </div>
@@ -300,7 +300,7 @@
        ========================================== -->
     <div id="fastMoneyRemoteView" style="display: none;">
         <div class="q-display" style="background: linear-gradient(135deg, #be0b21, #0d1b3e);">
-            <div style="font-family:'Bebas Neue'; font-size:2rem; color:#ffd800;">🔥 MODO DINERO RÁPIDO</div>
+            <div style="font-family:'Bebas Neue'; font-size:2rem; color:#ffd800;">🔥 MODO RONDA FINAL</div>
             <div style="display:flex; justify-content:center; gap:0.5rem; margin-top:0.7rem;">
                 <button id="btnFastTimer20" class="btn-remote" style="padding:0.4rem 0.8rem; font-size:0.8rem;">⏱️ RELOJ 20s</button>
                 <button id="btnFastTimer25" class="btn-remote" style="padding:0.4rem 0.8rem; font-size:0.8rem;">⏱️ RELOJ 25s</button>
@@ -397,7 +397,7 @@
             } else {
                 document.getElementById('normalGameRemoteView').style.display = 'block';
                 document.getElementById('fastMoneyRemoteView').style.display = 'none';
-                document.getElementById('btnToggleFastMoneyRemote').textContent = '🔥 DINERO RÁPIDO';
+                document.getElementById('btnToggleFastMoneyRemote').textContent = '🔥 RONDA FINAL';
                 
                 // Datos del juego normal
                 currentQuestion = data.question;
@@ -562,7 +562,8 @@
         };
 
         function sendRemoteCommand(actionType, payload = {}) {
-            const msg = { type: 'REMOTE_COMMAND', action: actionType, ...payload };
+            const msgId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            const msg = { type: 'REMOTE_COMMAND', id: msgId, action: actionType, ...payload };
             channel.postMessage(msg);
 
             const topicCommands = `bacis_100mineros_cmd_${roomCode.toLowerCase()}`;

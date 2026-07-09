@@ -853,6 +853,21 @@ body {
     box-shadow: 0 0 14px rgba(227, 18, 43, 0.85);
 }
 
+@keyframes fireGlow {
+    0% { text-shadow: 0 0 10px #ffaa00, 0 0 20px #ff0055, 0 0 35px #ffaa00; }
+    100% { text-shadow: 0 0 20px #ffd800, 0 0 45px #ff003c, 0 0 70px #ff9000; }
+}
+
+@keyframes pulseChampionCard {
+    0% { box-shadow: 0 0 40px rgba(255, 216, 0, 0.4); transform: scale(1); }
+    100% { box-shadow: 0 0 75px rgba(255, 216, 0, 0.85); transform: scale(1.02); }
+}
+
+@keyframes pulseChampionButton {
+    0% { transform: scale(1); box-shadow: 0 6px 20px rgba(255, 216, 0, 0.5); }
+    100% { transform: scale(1.06); box-shadow: 0 15px 40px rgba(255, 216, 0, 0.85); }
+}
+
 .champion-overlay {
     position: fixed;
     inset: 0;
