@@ -763,19 +763,48 @@ body {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 1rem;
-    margin-top: 1.2rem;
+    gap: 1.2rem;
+    margin-top: 1.8rem;
+    background: rgba(13, 27, 62, 0.55);
+    border: 2px solid #234eb6;
+    padding: 1.2rem;
+    border-radius: 18px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(35, 78, 182, 0.25);
 }
 
-.btn-strike {
-    background: linear-gradient(135deg, #be0b21, #7f0312);
-    border: 2px solid #ff4e62;
+.host-action-bar .btn-glow {
+    background: linear-gradient(135deg, #15327c, #07122b);
+    border: 2px solid #3c6fe6;
+    color: #ffffff;
+    padding: 0.8rem 1.6rem;
+    border-radius: 12px;
+    font-weight: 800;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    transform: translateY(0);
+}
+
+.host-action-bar .btn-glow:hover {
+    border-color: #ffd800;
+    background: linear-gradient(135deg, #1e45aa, #0b1c40);
+    box-shadow: 0 0 18px rgba(255, 216, 0, 0.4);
+    transform: translateY(-2px);
+}
+
+.host-action-bar .btn-strike {
+    background: linear-gradient(135deg, #ff1e38, #7f0312);
+    border: 2px solid #ff6e7e;
     color: #ffffff;
     font-weight: 900;
-    font-size: 1.05rem;
-    padding: 0.75rem 1.6rem;
+    padding: 0.8rem 1.6rem;
     border-radius: 12px;
-    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255, 30, 56, 0.25);
+    transition: all 0.25s ease;
+}
+
+.host-action-bar .btn-strike:hover {
+    background: linear-gradient(135deg, #ff4e62, #9e0516);
+    box-shadow: 0 0 22px rgba(255, 30, 56, 0.6);
+    transform: translateY(-2px);
 }
 
 /* =========================================
