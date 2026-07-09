@@ -1,5 +1,5 @@
 // Controlador Principal de "100 MINEROS DIJERON - EDICIÓN GRUPO BACIS"
-// Autor: Antigravity AI - Edición Mejor de 5 Rondas + Triple Motor Remoto (100% Online Vercel)
+// Autor: Antigravity AI - Edición Doble Motor Remoto en Nube
 
 class MiningGameShow {
     constructor() {
@@ -7,13 +7,9 @@ class MiningGameShow {
         this.playedIds = this.loadPlayedIds();
         this.currentQuestionIndex = this.findNextUnplayedIndex(0);
 
-        // Canales de sincronización:
         this.syncChannel = new BroadcastChannel('bacis_game_channel');
+        this.setupRedundantCloudSync();
 
-        // Triple Motor en Nube (PeerJS + MQTT)
-        this.setupTripleCloudSync();
-
-        // Ciclo del Partido (Ronda 1 a 5)
         this.currentMatchRound = 1;
         this.roundPot = 0;
         this.team1RoundsWon = 0;
@@ -23,11 +19,9 @@ class MiningGameShow {
         this.currentStrikes = 0;
         this.soundEnabled = true;
 
-        // Temporizador
         this.timerInterval = null;
         this.timeLeft = 10;
 
-        // Elementos de audio
         this.sounds = {
             intro: new Audio('a-jugar-100-mexicanos-dijeron_uzh3r4B.mp3'),
             button: new Audio('boton-10-mexicanos-digieron.mp3'),
@@ -43,51 +37,46 @@ class MiningGameShow {
         this.renderQuestion();
     }
 
-    setupTripleCloudSync() {
-        this.TOPIC_STATE = 'bacis/game/100mineros/live/state';
-        this.TOPIC_COMMANDS = 'bacis/game/100mineros/live/commands';
+    setupRedundantCloudSync() {
+        this.TOPIC_STATE = 'bacis/game/100mineros/bacis2026/state';
+        this.TOPIC_COMMANDS = 'bacis/game/100mineros/bacis2026/commands';
         
-        // 1. PeerJS WebRTC directo
-        try {
-            if (typeof Peer !== 'undefined') {
-                this.peer = new Peer('bacis-tv-bacis2026');
-                this.peer.on('open', () => {
-                    const badge = document.getElementById('cloudStatusBadge');
-                    if (badge) badge.style.borderColor = '#00ff88';
-                });
-                this.peer.on('connection', (conn) => {
-                    this.peerConn = conn;
-                    conn.on('data', (data) => {
-                        if (data && data.type === 'REMOTE_COMMAND') {
-                            this.handleRemoteCommand(data);
-                        }
-                    });
-                    this.broadcastSyncState();
-                });
-            }
-        } catch (e) {}
-
-        // 2. MQTT HiveMQ WSS
         if (typeof mqtt !== 'undefined') {
+            const handleMessage = (topic, message) => {
+                if (topic === this.TOPIC_COMMANDS) {
+                    try {
+                        const cmd = JSON.parse(message.toString());
+                        if (cmd && cmd.action) {
+                            this.handleRemoteCommand(cmd);
+                        }
+                    } catch (e) {}
+                }
+            };
+
+            // Broker 1: HiveMQ
             try {
-                this.mqttClient = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
-                this.mqttClient.on('connect', () => {
+                this.mqtt1 = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
+                this.mqtt1.on('connect', () => {
                     const badge = document.getElementById('cloudStatusBadge');
-                    if (badge) badge.textContent = '🟢 NUBE ONLINE (VERCEL)';
-                    this.mqttClient.subscribe(this.TOPIC_COMMANDS);
+                    if (badge) {
+                        badge.style.borderColor = '#00ff88';
+                        badge.style.color = '#00ff88';
+                        badge.textContent = '🟢 NUBE ONLINE (BACIS TV)';
+                    }
+                    this.mqtt1.subscribe(this.TOPIC_COMMANDS);
                     this.broadcastSyncState();
                 });
+                this.mqtt1.on('message', handleMessage);
+            } catch (e) {}
 
-                this.mqttClient.on('message', (topic, message) => {
-                    if (topic === this.TOPIC_COMMANDS) {
-                        try {
-                            const cmd = JSON.parse(message.toString());
-                            if (cmd && cmd.action) {
-                                this.handleRemoteCommand(cmd);
-                            }
-                        } catch (e) {}
-                    }
+            // Broker 2: EMQX
+            try {
+                this.mqtt2 = mqtt.connect('wss://broker.emqx.io:8884/mqtt');
+                this.mqtt2.on('connect', () => {
+                    this.mqtt2.subscribe(this.TOPIC_COMMANDS);
+                    this.broadcastSyncState();
                 });
+                this.mqtt2.on('message', handleMessage);
             } catch (e) {}
         }
     }
@@ -279,7 +268,20 @@ class MiningGameShow {
     }
 
     handleRemoteCommand(cmd) {
-        if (cmd.action === 'REVEAL_CARD') {
+        if (cmd.action === 'TEST_SOUND') {
+            this.playSound('button');
+            const badge = document.getElementById('cloudStatusBadge');
+            if (badge) {
+                badge.style.background = '#ffd800';
+                badge.style.color = '#000';
+                badge.textContent = '⚡ ¡RECIBIENDO COMANDO REMOTO!';
+                setTimeout(() => {
+                    badge.style.background = '#0b1836';
+                    badge.style.color = '#00ff88';
+                    badge.textContent = '🟢 NUBE ONLINE (BACIS TV)';
+                }, 1500);
+            }
+        } else if (cmd.action === 'REVEAL_CARD') {
             const cardEl = this.boardGrid.querySelectorAll('.flip-card')[cmd.cardIndex];
             if (cardEl && cardEl.dataset.revealed === 'false') {
                 cardEl.click();
@@ -315,20 +317,16 @@ class MiningGameShow {
             revealedIndexes: revealed
         };
 
-        // 1. Local
         this.syncChannel.postMessage({
             type: 'SYNC_STATE',
             ...stateObj
         });
 
-        // 2. PeerJS
-        if (this.peerConn && this.peerConn.open) {
-            this.peerConn.send({ type: 'SYNC_STATE', ...stateObj });
+        if (this.mqtt1) {
+            try { this.mqtt1.publish(this.TOPIC_STATE, JSON.stringify(stateObj)); } catch(e) {}
         }
-
-        // 3. MQTT Nube
-        if (this.mqttClient && this.mqttClient.connected) {
-            this.mqttClient.publish(this.TOPIC_STATE, JSON.stringify(stateObj));
+        if (this.mqtt2) {
+            try { this.mqtt2.publish(this.TOPIC_STATE, JSON.stringify(stateObj)); } catch(e) {}
         }
     }
 
@@ -511,7 +509,6 @@ class MiningGameShow {
             this.cheatSheetItems.appendChild(cheatItem);
         });
 
-        // Enviar estado actualizado por triple motor
         this.broadcastSyncState();
     }
 

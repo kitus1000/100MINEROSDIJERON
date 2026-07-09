@@ -157,9 +157,14 @@
         <div class="remote-status" id="connectionStatus">
             <span>🟡</span> BUSCANDO CONEXIÓN CON PANTALLA EN VIVO...
         </div>
-        <button id="btnForceReconnect" style="background:#1b3b8b; border:1px solid #ffd800; color:#fff; border-radius:8px; padding:0.35rem 0.8rem; font-size:0.75rem; font-weight:700; margin-top:0.4rem; cursor:pointer;">
-            🔄 RECONECTAR / SINCRONIZAR
-        </button>
+        <div style="display:flex; justify-content:center; gap:0.6rem; margin-top:0.7rem;">
+            <button id="btnTestSoundRemote" style="background:#ffd800; color:#000; border:none; border-radius:10px; padding:0.6rem 1rem; font-size:0.9rem; font-weight:900; cursor:pointer; box-shadow:0 0 15px rgba(255,216,0,0.5);">
+                🔊 PROBAR SONIDO EN TV
+            </button>
+            <button id="btnForceSync" style="background:#1b3b8b; border:1px solid #ffd800; color:#fff; border-radius:10px; padding:0.6rem 1rem; font-size:0.9rem; font-weight:800; cursor:pointer;">
+                🔄 SINCRONIZAR
+            </button>
+        </div>
     </div>
 
     <!-- PREGUNTA ACTUAL EN VIVO -->
@@ -220,7 +225,7 @@
         function setConnectedUI() {
             const statusEl = document.getElementById('connectionStatus');
             statusEl.classList.add('connected');
-            statusEl.innerHTML = '<span>🟢</span> CONECTADO A PANTALLA EN VIVO';
+            statusEl.innerHTML = '<span>🟢</span> CONECTADO A PANTALLA DE TV';
         }
 
         // ==========================================
@@ -235,60 +240,46 @@
         };
 
         // ==========================================
-        // MOTOR 2: PeerJS WebRTC Directo (100% Online)
+        // MOTOR 2: MQTT Redundante (Broker HiveMQ + Broker EMQX)
         // ==========================================
-        let peerConn = null;
-        try {
-            const peer = new Peer();
-            peer.on('open', () => {
-                peerConn = peer.connect('bacis-tv-bacis2026');
-                if (peerConn) {
-                    peerConn.on('open', () => {
-                        setConnectedUI();
-                        peerConn.send({ type: 'REMOTE_COMMAND', action: 'REQUEST_SYNC' });
-                    });
-                    peerConn.on('data', (data) => {
-                        if (data && data.type === 'SYNC_STATE') {
-                            setConnectedUI();
-                            applySyncState(data);
-                        }
-                    });
-                }
-            });
-        } catch (e) {}
+        const TOPIC_STATE = 'bacis/game/100mineros/bacis2026/state';
+        const TOPIC_COMMANDS = 'bacis/game/100mineros/bacis2026/commands';
+        
+        let mqtt1 = null;
+        let mqtt2 = null;
 
-        // ==========================================
-        // MOTOR 3: MQTT en Nube WSS (Respaldo universal Vercel)
-        // ==========================================
-        const TOPIC_STATE = 'bacis/game/100mineros/live/state';
-        const TOPIC_COMMANDS = 'bacis/game/100mineros/live/commands';
-        let mqttClient = null;
-
-        function connectMQTT() {
+        function connectMQTTBrokers() {
             try {
-                mqttClient = mqtt.connect('wss://broker.hivemq.com:8884/mqtt', {
-                    reconnectPeriod: 2000,
-                    connectTimeout: 5000
-                });
-
-                mqttClient.on('connect', () => {
+                mqtt1 = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
+                mqtt1.on('connect', () => {
                     setConnectedUI();
-                    mqttClient.subscribe(TOPIC_STATE);
+                    mqtt1.subscribe(TOPIC_STATE);
                     sendRemoteCommand('REQUEST_SYNC');
                 });
+                mqtt1.on('message', (t, m) => handleCloudMsg(t, m));
+            } catch (e) {}
 
-                mqttClient.on('message', (topic, message) => {
-                    if (topic === TOPIC_STATE) {
-                        try {
-                            const data = JSON.parse(message.toString());
-                            setConnectedUI();
-                            applySyncState(data);
-                        } catch (e) {}
-                    }
+            try {
+                mqtt2 = mqtt.connect('wss://broker.emqx.io:8884/mqtt');
+                mqtt2.on('connect', () => {
+                    setConnectedUI();
+                    mqtt2.subscribe(TOPIC_STATE);
+                    sendRemoteCommand('REQUEST_SYNC');
                 });
+                mqtt2.on('message', (t, m) => handleCloudMsg(t, m));
             } catch (e) {}
         }
-        connectMQTT();
+        connectMQTTBrokers();
+
+        function handleCloudMsg(topic, message) {
+            if (topic === TOPIC_STATE) {
+                try {
+                    const data = JSON.parse(message.toString());
+                    setConnectedUI();
+                    applySyncState(data);
+                } catch (e) {}
+            }
+        }
 
         function applySyncState(data) {
             if (!data || !data.question) return;
@@ -327,19 +318,27 @@
         function sendRemoteCommand(actionType, payload = {}) {
             const msg = { type: 'REMOTE_COMMAND', action: actionType, ...payload };
             
-            // 1. Canal local
+            // 1. Enviar local
             channel.postMessage(msg);
 
-            // 2. Canal PeerJS WebRTC
-            if (peerConn && peerConn.open) {
-                peerConn.send(msg);
+            // 2. Enviar por Nube MQTT 1
+            if (mqtt1) {
+                try { mqtt1.publish(TOPIC_COMMANDS, JSON.stringify(msg)); } catch(e) {}
             }
 
-            // 3. Canal MQTT Nube
-            if (mqttClient && mqttClient.connected) {
-                mqttClient.publish(TOPIC_COMMANDS, JSON.stringify(msg));
+            // 3. Enviar por Nube MQTT 2
+            if (mqtt2) {
+                try { mqtt2.publish(TOPIC_COMMANDS, JSON.stringify(msg)); } catch(e) {}
             }
         }
+
+        document.getElementById('btnTestSoundRemote').addEventListener('click', () => {
+            sendRemoteCommand('TEST_SOUND');
+        });
+
+        document.getElementById('btnForceSync').addEventListener('click', () => {
+            sendRemoteCommand('REQUEST_SYNC');
+        });
 
         document.getElementById('remBtnStrike').addEventListener('click', () => sendRemoteCommand('TRIGGER_STRIKE'));
         document.getElementById('remBtnPrev').addEventListener('click', () => sendRemoteCommand('PREV_QUESTION'));
@@ -349,12 +348,7 @@
         document.getElementById('remAwardT1').addEventListener('click', () => sendRemoteCommand('AWARD_ROUND_T1'));
         document.getElementById('remAwardT2').addEventListener('click', () => sendRemoteCommand('AWARD_ROUND_T2'));
 
-        document.getElementById('btnForceReconnect').addEventListener('click', () => {
-            sendRemoteCommand('REQUEST_SYNC');
-            alert('Enviando solicitud de sincronización a la pantalla principal...');
-        });
-
-        setTimeout(() => sendRemoteCommand('REQUEST_SYNC'), 600);
+        setTimeout(() => sendRemoteCommand('REQUEST_SYNC'), 700);
         renderRemoteScreen();
     </script>
 </body>
