@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACORDEÓN Y GUÍA DEL CONDUCTOR - 100 MINEROS DIJERON</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background: #060c1d;
+            color: #fff;
+            padding: 2rem;
+            font-family: 'Outfit', sans-serif;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .header-guide {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            border-bottom: 2px solid #ffd800;
+            padding-bottom: 1.5rem;
+        }
+        .guide-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3.5rem;
+            color: #ffd800;
+        }
+        .q-card {
+            background: #0d1b3e;
+            border: 2px solid #234eb6;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        }
+        .q-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #ffd800;
+            margin-bottom: 1rem;
+        }
+        .ans-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 0.8rem;
+        }
+        .ans-item {
+            background: #050a18;
+            border: 1px solid #3c6fe6;
+            border-radius: 10px;
+            padding: 0.7rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ans-num {
+            background: #ffd800;
+            color: #000;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.8rem;
+            flex-shrink: 0;
+        }
+        .ans-txt {
+            flex: 1;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        .ans-pts {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            color: #00ff88;
+            margin-left: 0.8rem;
+        }
+        .search-bar {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border-radius: 14px;
+            border: 2px solid #ffd800;
+            background: #030712;
+            color: #fff;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-guide">
+            <h1 class="guide-title">📋 ACORDEÓN / GUÍA DEL CONDUCTOR</h1>
+            <p style="color: #9baad8; font-size: 1.1rem;">
+                Abre esta página en tu celular, tableta o segunda pantalla para ver qué respuesta oculta tiene cada número antes de presionar las tarjetas.
+            </p>
+        </div>
+
+        <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Buscar pregunta o palabra clave (ej. esposa, turno, oro...)...">
+
+        <div id="questionsContainer"></div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script>
+        const container = document.getElementById('questionsContainer');
+        const searchInput = document.getElementById('searchInput');
+
+        function renderGuide(filterText = '') {
+            container.innerHTML = '';
+            MINING_QUESTIONS.forEach((q, idx) => {
+                if (filterText && !q.question.toLowerCase().includes(filterText.toLowerCase())) {
+                    return;
+                }
+                const card = document.createElement('div');
+                card.className = 'q-card';
+                card.innerHTML = `
+                    <div class="q-title">#${idx + 1}. ${q.question}</div>
+                    <div class="ans-list">
+                        ${q.answers.map((a, i) => `
+                            <div class="ans-item">
+                                <div class="ans-num">${i + 1}</div>
+                                <div class="ans-txt">${a.text}</div>
+                                <div class="ans-pts">${a.points} pts</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            renderGuide(e.target.value);
+        });
+
+        renderGuide();
+    </script>
+</body>
+</html>

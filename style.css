@@ -1,0 +1,920 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Bebas+Neue&family=Montserrat:wght@500;700;900&display=swap');
+
+:root {
+    --bg-dark: #050a18;
+    --bg-card: #0d1b3e;
+    --bacis-blue: #12388b;
+    --bacis-blue-light: #2558d0;
+    --bacis-blue-gradient: linear-gradient(135deg, #091738 0%, #163683 50%, #1a42a0 100%);
+    --gold-primary: #ffd800;
+    --gold-glow: rgba(255, 216, 0, 0.45);
+    --gold-gradient: linear-gradient(180deg, #ffe853 0%, #ffd000 50%, #d89e00 100%);
+    --silver-gradient: linear-gradient(180deg, #ffffff 0%, #dcdcdc 50%, #9e9e9e 100%);
+    --strike-red: #ff1e38;
+    --strike-glow: rgba(255, 30, 56, 0.7);
+    --text-white: #ffffff;
+    --text-muted: #9baad8;
+    --board-border: #142a63;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Outfit', 'Montserrat', sans-serif;
+    background: radial-gradient(circle at 50% 15%, #183375 0%, #08112c 55%, #030612 100%);
+    color: var(--text-white);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+    padding-bottom: 3.5rem;
+}
+
+/* =========================================
+   BARRA DE ACORDEÓN / GUÍA DEL CONDUCTOR (INTERACTIVA)
+   ========================================= */
+.host-cheat-sheet {
+    background: rgba(4, 8, 20, 0.95);
+    border: 2px dashed #ffd800;
+    border-radius: 16px;
+    padding: 1rem 1.5rem;
+    margin-top: 1rem;
+    display: none;
+    animation: fadeInCheat 0.3s ease;
+}
+
+.host-cheat-sheet.active {
+    display: block;
+}
+
+@keyframes fadeInCheat {
+    0% { opacity: 0; transform: translateY(-8px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+.cheat-sheet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+    border-bottom: 1px solid rgba(255, 216, 0, 0.3);
+    padding-bottom: 0.5rem;
+}
+
+.cheat-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #ffd800;
+    letter-spacing: 1px;
+}
+
+.cheat-items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.6rem;
+}
+
+.cheat-item {
+    background: #0d1b3e;
+    border: 1px solid #234eb6;
+    border-radius: 8px;
+    padding: 0.45rem 0.8rem;
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cheat-item-num {
+    background: #ffd800;
+    color: #000;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* =========================================
+   ANUNCIO GIGANTE DE INICIO DE RONDA (1, 2, 3...)
+   ========================================= */
+.round-announcement-overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(13, 27, 62, 0.95) 0%, rgba(3, 7, 18, 0.98) 100%);
+    backdrop-filter: blur(14px);
+    z-index: 1700;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.6);
+    transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.round-announcement-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
+}
+
+.big-round-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 8.5rem;
+    line-height: 0.9;
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 35px rgba(255, 216, 0, 0.85));
+    letter-spacing: 4px;
+    animation: pulseBigRound 0.6s infinite alternate;
+}
+
+@keyframes pulseBigRound {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.06); }
+}
+
+.big-round-subtitle {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #8ab4ff;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-top: 1rem;
+}
+
+/* =========================================
+   PANTALLA DE PRESENTACIÓN / PORTADA DEL PROGRAMA
+   ========================================= */
+.intro-screen {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 50% 30%, #17337a 0%, #08122d 60%, #030612 100%);
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    transition: opacity 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.6s ease;
+}
+
+.intro-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(1.08);
+}
+
+.intro-logo-container {
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 0 25px rgba(37, 88, 208, 0.9));
+    animation: floatIntro 4s infinite alternate ease-in-out;
+}
+
+@keyframes floatIntro {
+    0% { transform: translateY(0) scale(1); }
+    100% { transform: translateY(-12px) scale(1.04); }
+}
+
+.intro-show-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 5.5rem;
+    line-height: 0.9;
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 4px 15px rgba(255, 216, 0, 0.5));
+    letter-spacing: 3px;
+    margin-bottom: 0.5rem;
+}
+
+.intro-subtitle {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #8ab4ff;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    margin-bottom: 2.5rem;
+}
+
+.intro-buttons {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn-start-show {
+    background: var(--gold-gradient);
+    color: #050a18;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    padding: 0.9rem 3.5rem;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    letter-spacing: 2px;
+    box-shadow: 0 10px 35px rgba(255, 216, 0, 0.7);
+    transition: all 0.25s ease;
+}
+
+.btn-start-show:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 15px 45px rgba(255, 216, 0, 0.95);
+}
+
+.btn-admin-config {
+    background: rgba(14, 33, 84, 0.8);
+    border: 2px solid #3c6fe6;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 1.05rem;
+    padding: 0.9rem 2rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.btn-admin-config:hover {
+    background: #2558d0;
+    border-color: #ffd800;
+}
+
+/* =========================================
+   TRANSICIÓN CORTINA TV
+   ========================================= */
+.transition-curtain {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at center, #1e45aa 0%, #060c1d 100%);
+    z-index: 1500;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transform: scaleX(0);
+    transition: transform 0.45s cubic-bezier(0.7, 0, 0.3, 1), opacity 0.3s ease;
+}
+
+.transition-curtain.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scaleX(1);
+}
+
+.transition-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    color: #ffd800;
+    text-shadow: 0 0 25px rgba(255, 216, 0, 0.8);
+    margin-top: 1rem;
+    letter-spacing: 4px;
+}
+
+/* =========================================
+   EFECTOS Y PARTÍCULAS
+   ========================================= */
+.particles-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #ffd800;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #ffd800, 0 0 20px #ffe853;
+    animation: floatParticle 9s infinite linear;
+    opacity: 0.6;
+}
+
+@keyframes floatParticle {
+    0% { transform: translateY(105vh) scale(0.6); opacity: 0; }
+    20% { opacity: 0.85; }
+    80% { opacity: 0.85; }
+    100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+}
+
+/* =========================================
+   HEADER & MARQUEE DE GRUPO BACIS
+   ========================================= */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 2.5rem;
+    background: rgba(8, 17, 44, 0.88);
+    backdrop-filter: blur(16px);
+    border-bottom: 2px solid rgba(255, 216, 0, 0.4);
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.7);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.brand-section {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+}
+
+.bacis-logo-badge {
+    width: 58px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 0 12px rgba(37, 88, 208, 0.9));
+}
+
+.show-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.3rem;
+    letter-spacing: 2px;
+    line-height: 0.95;
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.show-subtitle {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: #8ab4ff;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.btn-glow {
+    background: linear-gradient(135deg, #1b3a8a, #0e2154);
+    border: 1px solid rgba(255, 216, 0, 0.4);
+    color: var(--text-white);
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    transition: all 0.25s ease;
+}
+
+.btn-glow:hover {
+    background: linear-gradient(135deg, #2558d0, #143588);
+    border-color: var(--gold-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 0 18px rgba(255, 216, 0, 0.45);
+}
+
+.btn-gold {
+    background: var(--gold-gradient);
+    color: #000;
+    border: none;
+    font-weight: 900;
+}
+
+/* =========================================
+   FRANJA SUPERIOR DE RONDA Y RELOJ DE CUENTA REGRESIVA
+   ========================================= */
+.surprise-banner-strip {
+    max-width: 1380px;
+    margin: 1rem auto 0.8rem;
+    padding: 0 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.surprise-badge {
+    background: var(--gold-gradient);
+    color: #060c1c;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.55rem;
+    letter-spacing: 2px;
+    padding: 0.4rem 1.5rem;
+    border-radius: 999px;
+    box-shadow: 0 0 20px rgba(255, 216, 0, 0.6);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tv-timer-panel {
+    background: rgba(13, 27, 62, 0.9);
+    border: 2px solid #3c6fe6;
+    border-radius: 16px;
+    padding: 0.45rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.timer-label {
+    font-weight: 800;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #9baad8;
+}
+
+.timer-digits {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.6rem;
+    line-height: 1;
+    color: #00ff88;
+    min-width: 55px;
+    text-align: center;
+    text-shadow: 0 0 16px rgba(0, 255, 136, 0.6);
+}
+
+.timer-digits.warning { color: #ffaa00; text-shadow: 0 0 20px rgba(255, 170, 0, 0.8); }
+.timer-digits.danger { color: #ff1e38; text-shadow: 0 0 25px rgba(255, 30, 56, 0.9); }
+
+.timer-buttons { display: flex; gap: 0.4rem; }
+
+.btn-timer {
+    background: #142a63;
+    border: 1px solid #3c6fe6;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-timer:hover { background: #2558d0; border-color: #ffd800; }
+
+/* =========================================
+   MARCADOR DE RONDAS (EQUIPOS Y EQUIPO LÍDER DORADO)
+   ========================================= */
+.game-arena {
+    max-width: 1380px;
+    margin: 0 auto;
+    padding: 0.5rem 1.5rem;
+    display: grid;
+    grid-template-columns: 270px 1fr 270px;
+    gap: 1.8rem;
+    align-items: start;
+}
+
+@media (max-width: 1100px) {
+    .game-arena { grid-template-columns: 1fr; gap: 1.2rem; }
+}
+
+.team-podium {
+    background: linear-gradient(180deg, rgba(16, 35, 88, 0.88) 0%, rgba(8, 17, 44, 0.95) 100%);
+    border: 2px solid rgba(255, 216, 0, 0.4);
+    border-radius: 20px;
+    padding: 1.4rem 1.2rem;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.35s ease;
+}
+
+.team-podium::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 6px;
+    background: var(--gold-gradient);
+}
+
+.team-podium.leading-team {
+    border: 3px solid #ffd800;
+    box-shadow: 0 0 35px rgba(255, 216, 0, 0.6), inset 0 0 25px rgba(255, 216, 0, 0.15);
+    animation: goldLeaderPulse 1.5s infinite alternate;
+}
+
+@keyframes goldLeaderPulse {
+    0% { transform: scale(1); box-shadow: 0 0 25px rgba(255, 216, 0, 0.5); }
+    100% { transform: scale(1.03); box-shadow: 0 0 45px rgba(255, 216, 0, 0.85); }
+}
+
+.team-podium.leading-team .team-name {
+    color: #ffd800;
+    text-shadow: 0 0 15px #ffd800, 0 0 25px #ffe853;
+    animation: goldTextPulse 1s infinite alternate;
+}
+
+@keyframes goldTextPulse {
+    0% { opacity: 0.9; }
+    100% { opacity: 1; text-shadow: 0 0 25px #ffd800, 0 0 40px #ffaa00; }
+}
+
+.team-name-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.team-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.rounds-won-container {
+    background: rgba(4, 8, 20, 0.8);
+    border: 1px solid #234eb6;
+    border-radius: 12px;
+    padding: 0.5rem;
+    margin-bottom: 0.8rem;
+}
+
+.rounds-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #9baad8;
+    margin-bottom: 0.3rem;
+}
+
+.rounds-stars {
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
+    font-size: 1.4rem;
+}
+
+.round-star {
+    opacity: 0.25;
+    transition: all 0.3s ease;
+}
+
+.round-star.won {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(255, 216, 0, 0.9));
+    transform: scale(1.15);
+}
+
+.btn-award-round {
+    width: 100%;
+    background: var(--gold-gradient);
+    color: #0b1530;
+    font-weight: 900;
+    font-size: 1rem;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(255, 216, 0, 0.4);
+    transition: all 0.2s ease;
+}
+
+.btn-award-round:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 25px rgba(255, 216, 0, 0.85);
+}
+
+/* =========================================
+   TABLERO CENTRAL DE TELEVISIÓN
+   ========================================= */
+.board-center {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.round-header-panel {
+    background: linear-gradient(135deg, #091738 0%, #15327c 100%);
+    border: 3px solid #ffd800;
+    border-radius: 22px;
+    padding: 1.4rem 1.8rem;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75);
+    text-align: center;
+}
+
+.question-text {
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.35;
+    color: #ffffff;
+    margin-bottom: 0.9rem;
+}
+
+.round-pot-display {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: #030712;
+    border: 2px solid #234eb6;
+    padding: 0.4rem 1.4rem;
+    border-radius: 12px;
+}
+
+.pot-label {
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #9baad8;
+}
+
+.pot-points {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.3rem;
+    color: #ffd800;
+    line-height: 1;
+}
+
+.tv-board-frame {
+    background: #060c1d;
+    border: 8px solid #0f2355;
+    border-radius: 28px;
+    padding: 1.8rem;
+    position: relative;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+}
+
+.led-lights {
+    position: absolute;
+    inset: -6px;
+    border-radius: 32px;
+    pointer-events: none;
+    border: 4px dashed rgba(255, 216, 0, 0.55);
+    animation: pulseBorder 2s infinite alternate;
+}
+
+.answers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.1rem;
+}
+
+@media (max-width: 650px) { .answers-grid { grid-template-columns: 1fr; } }
+
+.flip-card {
+    background: transparent;
+    height: 78px;
+    perspective: 1000px;
+    cursor: pointer;
+}
+
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-style: preserve-3d;
+}
+
+.flip-card.revealed .flip-card-inner { transform: rotateX(180deg); }
+
+.flip-card-front, .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+
+.flip-card-front {
+    background: linear-gradient(180deg, #183e9d 0%, #0d2564 100%);
+    border: 3px solid #3c6fe6;
+}
+
+.card-number-badge {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #0e2052 0%, #060e26 100%);
+    border: 2px solid #ffd800;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    color: #ffd800;
+}
+
+.flip-card-back {
+    background: linear-gradient(180deg, #1e45aa 0%, #0f2a70 100%);
+    border: 3px solid #ffd800;
+    transform: rotateX(180deg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.2rem;
+}
+
+.answer-text {
+    font-weight: 800;
+    font-size: 1.12rem;
+    text-transform: uppercase;
+    text-align: left;
+    flex: 1;
+    padding-right: 0.8rem;
+}
+
+.answer-points {
+    background: #040814;
+    border: 2px solid #ffd800;
+    border-radius: 8px;
+    min-width: 54px; height: 48px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.9rem;
+    color: #ffd800;
+}
+
+.host-action-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.2rem;
+}
+
+.btn-strike {
+    background: linear-gradient(135deg, #be0b21, #7f0312);
+    border: 2px solid #ff4e62;
+    color: #ffffff;
+    font-weight: 900;
+    font-size: 1.05rem;
+    padding: 0.75rem 1.6rem;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+/* =========================================
+   MODALES Y OVERLAYS
+   ========================================= */
+.strike-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 8, 20, 0.88);
+    backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.strike-overlay.active { opacity: 1; pointer-events: auto; }
+.strike-container { display: flex; gap: 2rem; transform: scale(0.5); transition: transform 0.35s ease; }
+.strike-overlay.active .strike-container { transform: scale(1); }
+
+.big-strike-x {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14rem;
+    line-height: 1;
+    color: #ff122b;
+    text-shadow: 0 0 40px #ff122b, 0 0 80px #94000f;
+}
+
+.strikes-indicator { display: flex; justify-content: center; gap: 0.5rem; }
+
+.mini-strike {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    color: transparent;
+}
+
+.mini-strike.active {
+    background: #e3122b;
+    border-color: #ff6e7e;
+    color: #ffffff;
+    box-shadow: 0 0 14px rgba(227, 18, 43, 0.85);
+}
+
+.champion-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 7, 18, 0.92);
+    backdrop-filter: blur(14px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1800;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.champion-overlay.active { opacity: 1; pointer-events: auto; }
+
+.champion-card {
+    background: #0d1b3e;
+    border: 4px solid #ffd800;
+    border-radius: 28px;
+    padding: 3rem 2.5rem;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(255, 216, 0, 0.6);
+    max-width: 600px;
+    width: 90%;
+}
+
+.champion-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.8rem;
+    color: #ffd800;
+    margin-bottom: 0.5rem;
+}
+
+.champion-team-name {
+    font-size: 2.4rem;
+    font-weight: 900;
+    color: #ffffff;
+    margin-bottom: 2rem;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 7, 18, 0.88);
+    backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1100;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+    padding: 1.5rem;
+}
+
+.modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+.modal-box {
+    background: #0d1b3e;
+    border: 2px solid #3661cc;
+    border-radius: 20px;
+    width: 100%; max-width: 650px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 2rem;
+}
+
+.modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    padding-bottom: 1rem;
+}
+
+.modal-title { font-size: 1.5rem; font-weight: 800; color: #ffd800; }
+.btn-close { background: transparent; border: none; color: #fff; font-size: 1.8rem; cursor: pointer; }
+
+.form-group { margin-bottom: 1.2rem; }
+.form-group label { display: block; font-size: 0.9rem; font-weight: 700; color: #9baad8; margin-bottom: 0.4rem; }
+.form-control {
+    width: 100%;
+    background: #060c1d;
+    border: 1px solid #234eb6;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+}
+
+.answer-row-input { display: grid; grid-template-columns: 1fr 100px; gap: 0.7rem; margin-bottom: 0.6rem; }
+
+.app-footer {
+    text-align: center;
+    padding: 2rem 1.5rem 1rem;
+    color: #7b91ca;
+    font-size: 0.85rem;
+    font-weight: 600;
+}

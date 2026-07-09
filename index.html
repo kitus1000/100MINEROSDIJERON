@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>100 MINEROS DIJERON - EDICIÓN GRUPO BACIS</title>
+    <meta name="description" content="Juego de televisión 100 Mineros Dijeron al Mejor de 5 Rondas para Grupo Bacis.">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- FONDO DE PARTÍCULAS DORADAS FLOTANTES -->
+    <div id="particlesBg" class="particles-bg"></div>
+
+    <!-- PANTALLA DE PRESENTACIÓN / PORTADA DEL PROGRAMA -->
+    <section id="introScreen" class="intro-screen">
+        <div class="intro-logo-container">
+            <svg viewBox="0 0 140 120" width="130" height="112" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="bacisBlueIntro" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#3c6fe6" />
+                        <stop offset="50%" stop-color="#1b3b8b" />
+                        <stop offset="100%" stop-color="#0a1840" />
+                    </linearGradient>
+                </defs>
+                <path d="M15,95 C15,40 40,10 70,10 C100,10 125,40 125,95 L140,95 L140,108 L0,108 L0,95 Z" fill="#040814" stroke="#ffffff" stroke-width="1.5"/>
+                <path d="M22,90 C23,45 45,18 70,18 C95,18 117,45 118,90 Z" fill="url(#bacisBlueIntro)" stroke="#8ab4ff" stroke-width="1.5"/>
+                <g stroke="#ffffff" stroke-width="2.5" stroke-linecap="round">
+                    <line x1="48" y1="30" x2="90" y2="60" />
+                    <line x1="90" y1="30" x2="48" y2="60" />
+                </g>
+                <path d="M42,26 Q48,26 48,34 L40,34 Z" fill="#ffffff" />
+                <path d="M85,25 Q95,25 94,33" fill="none" stroke="#ffffff" stroke-width="3" />
+                <text x="70" y="82" text-anchor="middle" font-family="Georgia, serif" font-weight="900" font-size="34" fill="#ffffff" letter-spacing="1">GB</text>
+            </svg>
+        </div>
+        <h1 class="intro-show-title">100 MINEROS DIJERON</h1>
+        <p class="intro-subtitle">EDICIÓN OFICIAL • MINA DE BACIS • MEJOR DE 5 RONDAS</p>
+        <div class="intro-buttons">
+            <button id="btnStartShow" class="btn-start-show">
+                🎬 COMENZAR EL SHOW
+            </button>
+            <button id="btnOpenConfigFromIntro" class="btn-admin-config">
+                ⚙️ AJUSTES DEL CONDUCTOR
+            </button>
+        </div>
+    </section>
+
+    <!-- ANUNCIO GIGANTE DE INICIO DE RONDA (A PANTALLA COMPLETA) -->
+    <div id="roundAnnouncementOverlay" class="round-announcement-overlay">
+        <div id="bigRoundNumberText" class="big-round-number">🌟 RONDA 1</div>
+        <div id="bigRoundSubText" class="big-round-subtitle">¡PRIMERA PREGUNTA SORPRESA!</div>
+    </div>
+
+    <!-- TRANSICIÓN ESPECTACULAR AL CAMBIAR DE PREGUNTA -->
+    <div id="curtainTransition" class="transition-curtain">
+        <h2 class="transition-title">⛏️ SIGUIENTE PREGUNTA BACIS...</h2>
+    </div>
+
+    <!-- CABECERA DEL PROGRAMA -->
+    <header class="app-header">
+        <div class="brand-section">
+            <div class="bacis-logo-badge">
+                <svg viewBox="0 0 140 120" width="58" height="50" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="bacisBlue" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#3c6fe6" />
+                            <stop offset="50%" stop-color="#1b3b8b" />
+                            <stop offset="100%" stop-color="#0a1840" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M15,95 C15,40 40,10 70,10 C100,10 125,40 125,95 L140,95 L140,108 L0,108 L0,95 Z" fill="#040814" stroke="#ffffff" stroke-width="1.5"/>
+                    <path d="M22,90 C23,45 45,18 70,18 C95,18 117,45 118,90 Z" fill="url(#bacisBlue)" stroke="#8ab4ff" stroke-width="1.5"/>
+                    <g stroke="#ffffff" stroke-width="2.5" stroke-linecap="round">
+                        <line x1="48" y1="30" x2="90" y2="60" />
+                        <line x1="90" y1="30" x2="48" y2="60" />
+                    </g>
+                    <path d="M42,26 Q48,26 48,34 L40,34 Z" fill="#ffffff" />
+                    <path d="M85,25 Q95,25 94,33" fill="none" stroke="#ffffff" stroke-width="3" />
+                    <text x="70" y="82" text-anchor="middle" font-family="Georgia, serif" font-weight="900" font-size="34" fill="#ffffff" letter-spacing="1">GB</text>
+                </svg>
+            </div>
+            <div class="brand-titles">
+                <h1 class="show-title">100 MINEROS DIJERON</h1>
+                <div class="show-subtitle">EDICIÓN OFICIAL • MINA DE BACIS</div>
+            </div>
+        </div>
+
+        <div class="header-controls">
+            <button id="btnPlayIntro" class="btn-glow btn-gold" title="Música del programa">
+                <span>🎵 INTRO</span>
+            </button>
+            <button id="btnToggleSound" class="btn-glow">
+                <span>🔊 SONIDO: ON</span>
+            </button>
+            <button id="btnOpenConfigMenu" class="btn-glow">
+                <span>⚙️ MENÚ CONDUCTOR</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- FRANJA DE RONDA SORPRESA Y RELOJ DE CUENTA REGRESIVA -->
+    <section class="surprise-banner-strip">
+        <div id="surpriseBadge" class="surprise-badge">
+            <span>🎁</span> RONDA 1 DE 5
+        </div>
+
+        <div class="tv-timer-panel">
+            <span class="timer-label">⏱️ Tiempo Concursante:</span>
+            <span id="timerDigits" class="timer-digits">--s</span>
+            <div class="timer-buttons">
+                <button id="btnStartTimer10" class="btn-timer" title="10 segundos">10s</button>
+                <button id="btnStartTimer5" class="btn-timer" title="5 segundos rápidos">5s</button>
+                <button id="btnStopTimer" class="btn-timer" title="Pausar o detener">⏹️ PARAR</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ESTADIO PRINCIPAL AL MEJOR DE 5 RONDAS -->
+    <main class="game-arena">
+        
+        <!-- EQUIPO 1: LOS BARRETEROS -->
+        <aside id="podiumTeam1" class="team-podium">
+            <div class="team-name-wrapper">
+                <span>👷‍♂️</span>
+                <h2 class="team-name" title="Haz clic para renombrar al equipo">LOS BARRETEROS</h2>
+            </div>
+            
+            <div class="rounds-won-container">
+                <div class="rounds-label">Rondas Ganadas (Mejor de 5):</div>
+                <div id="team1RoundStars" class="rounds-stars">
+                    <span class="round-star">🏆</span>
+                    <span class="round-star">🏆</span>
+                    <span class="round-star">🏆</span>
+                    <span class="round-star">🏆</span>
+                    <span class="round-star">🏆</span>
+                </div>
+            </div>
+
+            <button id="t1AwardRound" class="btn-award-round">🏆 SUMAR RONDA (+1)</button>
+        </aside>
+
+        <!-- TABLERO PRINCIPAL DEL PROGRAMA -->
+        <section class="board-center">
+            
+            <!-- ENCABEZADO DE RONDA -->
+            <div class="round-header-panel">
+                <h3 id="questionText" class="question-text">
+                    Cargando pregunta sorpresa de Grupo Bacis...
+                </h3>
+                
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 0.5rem;">
+                    <div class="round-pot-display" title="Puntos acumulados en esta pregunta">
+                        <span class="pot-label">Puntos en Ronda:</span>
+                        <span id="roundPotPoints" class="pot-points">0</span>
+                    </div>
+
+                    <div class="strikes-indicator">
+                        <div class="mini-strike"></div>
+                        <div class="mini-strike"></div>
+                        <div class="mini-strike"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MARCO DE TV CON LUCES LED Y TARJETAS 3D FLIP -->
+            <div class="tv-board-frame">
+                <div class="led-lights"></div>
+                <div id="answersGrid" class="answers-grid"></div>
+
+                <!-- PANEL DESPLEGABLE CON ACORDEÓN DE RESPUESTAS PARA EL CONDUCTOR -->
+                <div id="hostCheatSheet" class="host-cheat-sheet">
+                    <div class="cheat-sheet-header">
+                        <span class="cheat-title">👀 ACORDEÓN DEL CONDUCTOR (RESPUESTAS OCULTAS DE ESTA PREGUNTA):</span>
+                        <span style="font-size:0.8rem; color:#9baad8;">Pasa el mouse sobre cualquier tarjeta o consulta aquí abajo</span>
+                    </div>
+                    <div id="cheatSheetItems" class="cheat-items-grid"></div>
+                </div>
+            </div>
+
+            <!-- PANEL DEL CONDUCTOR (CONTROLES DE JUEGO) -->
+            <div class="host-action-bar">
+                <button id="btnPrevQuestion" class="btn-glow">
+                    <span>⬅️ ANTERIOR</span>
+                </button>
+                <button id="btnStrike" class="btn-strike">
+                    <span>❌ TACHE / ERROR</span>
+                </button>
+                <button id="btnToggleCheatSheet" class="btn-glow" style="border-color:#ffd800;" title="Muestra las respuestas ocultas para que sepas qué tarjeta destapar">
+                    <span>👀 ACORDEÓN CONDUCTOR</span>
+                </button>
+                <button id="btnRevealAll" class="btn-glow" title="Muestra las respuestas sin alterar el marcador">
+                    <span>👁️ REVELAR TODAS (SIN SUMAR)</span>
+                </button>
+                <button id="btnNextQuestion" class="btn-glow">
+                    <span>SIGUIENTE PREGUNTA ➡️</span>
+                </button>
+            </div>
+
+        </section>
+
+        <!-- EQUIPO 2: LOS GAMBUSINOS -->
+        <aside id="podiumTeam2" class="team-podium">
+            <div class="team-name-wrapper">
+                <span>🔦</span>
+                <h2 class="team-name" title="Haz clic para renombrar al equipo">LOS GAMBUSINOS</h2>
+            </div>
+            
+            <div class="rounds-won-container">
+                <div class="rounds-label">Rondas Ganadas (Mejor de 5):</div>
+                <div id="team2RoundStars" class="rounds-stars">
+                    <span class="round-star">🏆</span>
+                    <span class="round-star">🏆</span>
+                    <span class="round-star">🏆</span>
+                    <span class="round-star">🏆</span>
+                    <span class="round-star">🏆</span>
+                </div>
+            </div>
+
+            <button id="t2AwardRound" class="btn-award-round">🏆 SUMAR RONDA (+1)</button>
+        </aside>
+
+    </main>
+
+    <!-- OVERLAY DRAMÁTICO DE TACHE (ERROR) -->
+    <div id="strikeOverlay" class="strike-overlay">
+        <div id="strikeContainer" class="strike-container"></div>
+    </div>
+
+    <!-- MODAL DE CAMPEONES DEL PARTIDO (3 DE 5 GANADOS) -->
+    <div id="championOverlay" class="champion-overlay">
+        <div class="champion-card">
+            <div class="champion-title">🏆 ¡VICTORIA ABSOLUTA! 🏆</div>
+            <p style="color: #9baad8; font-size: 1.1rem; margin-bottom: 0.5rem;">HAN GANADO EL SHOW DE 100 MINEROS DIJERON</p>
+            <div id="championTeamName" class="champion-team-name">LOS BARRETEROS</div>
+            <button id="btnRestartMatch" class="btn-start-show" style="font-size: 1.4rem; padding: 0.7rem 2rem;">
+                🔄 NUEVA PARTIDA
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL MENÚ DEL CONDUCTOR -->
+    <div id="modalConfig" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title">⚙️ PANEL DEL CONDUCTOR BACIS</h3>
+                <button id="btnCloseConfig" class="btn-close">&times;</button>
+            </div>
+            <p style="color: #9baad8; margin-bottom: 1.5rem;">
+                Opciones para el conductor o presentador del programa:
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <a href="conductor.html" target="_blank" style="text-decoration:none;">
+                    <button class="btn-glow btn-gold" style="width:100%; justify-content: center; padding: 1rem; font-size:1.05rem;">
+                        📱 ABRIR VISTA DEL CONDUCTOR (CONTROL REMOTO DE PANTALLA)
+                    </button>
+                </a>
+                <a href="guia-conductor.html" target="_blank" style="text-decoration:none;">
+                    <button class="btn-glow" style="width:100%; justify-content: center; padding: 1rem;">
+                        📋 ABRIR ACORDEÓN Y BUSCADOR EN OTRA VENTANA
+                    </button>
+                </a>
+                <button id="btnOpenAddModal" class="btn-glow" style="justify-content: center; padding: 1rem;">
+                    ➕ CREAR PREGUNTA PERSONALIZADA
+                </button>
+                <button id="btnResetPlayedHistory" class="btn-glow" style="justify-content: center; padding: 1rem;">
+                    🔄 REINICIAR HISTORIAL DE PREGUNTAS YA JUGADAS
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AGREGAR PREGUNTA PERSONALIZADA -->
+    <div id="modalAddQuestion" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title">➕ AGREGAR PREGUNTA MINERA BACIS</h3>
+                <button id="btnCloseModal" class="btn-close">&times;</button>
+            </div>
+            <form id="formAddQuestion">
+                <div class="form-group">
+                    <label for="inputQuestionText">Pregunta o Encuesta Minera Sorpresa</label>
+                    <input type="text" id="inputQuestionText" class="form-control" placeholder="Ej. ¿Qué es lo primero que dice la esposa al verlo llegar?..." required>
+                </div>
+
+                <div class="form-group">
+                    <label>Respuestas más populares (con puntos que sumen ~100)</label>
+                    <div class="answer-row-input">
+                        <input type="text" id="ansText1" class="form-control" placeholder="Respuesta 1 (Más popular)" required>
+                        <input type="number" id="ansPts1" class="form-control" placeholder="Puntos" required>
+                    </div>
+                    <div class="answer-row-input">
+                        <input type="text" id="ansText2" class="form-control" placeholder="Respuesta 2">
+                        <input type="number" id="ansPts2" class="form-control" placeholder="Puntos">
+                    </div>
+                    <div class="answer-row-input">
+                        <input type="text" id="ansText3" class="form-control" placeholder="Respuesta 3">
+                        <input type="number" id="ansPts3" class="form-control" placeholder="Puntos">
+                    </div>
+                    <div class="answer-row-input">
+                        <input type="text" id="ansText4" class="form-control" placeholder="Respuesta 4">
+                        <input type="number" id="ansPts4" class="form-control" placeholder="Puntos">
+                    </div>
+                    <div class="answer-row-input">
+                        <input type="text" id="ansText5" class="form-control" placeholder="Respuesta 5">
+                        <input type="number" id="ansPts5" class="form-control" placeholder="Puntos">
+                    </div>
+                    <div class="answer-row-input">
+                        <input type="text" id="ansText6" class="form-control" placeholder="Respuesta 6">
+                        <input type="number" id="ansPts6" class="form-control" placeholder="Puntos">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-glow btn-gold" style="width: 100%; justify-content: center; margin-top: 1rem; padding: 0.9rem;">
+                    GUARDAR PREGUNTA SORPRESA EN EL JUEGO
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- PIE DE PÁGINA -->
+    <footer class="app-footer">
+        © 2026 <span>GRUPO BACIS</span> • 100 Mineros Dijeron Edición Oficial • Desarrollado para Minería de Bacis
+    </footer>
+
+    <script src="questions.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

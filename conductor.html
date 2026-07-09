@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CONTROL REMOTO CONDUCTOR - 100 MINEROS DIJERON</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background: #040916;
+            color: #fff;
+            padding: 1rem;
+            font-family: 'Outfit', sans-serif;
+        }
+        .remote-header {
+            background: #0d1b3e;
+            border: 2px solid #3c6fe6;
+            border-radius: 16px;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+        }
+        .remote-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #030712;
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            padding: 0.3rem 0.8rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            margin-top: 0.5rem;
+        }
+        .q-display {
+            background: linear-gradient(135deg, #091738 0%, #15327c 100%);
+            border: 2px solid #ffd800;
+            border-radius: 16px;
+            padding: 1.2rem;
+            margin-bottom: 1.2rem;
+            text-align: center;
+        }
+        .q-text {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.35;
+            margin-top: 0.5rem;
+        }
+        .answers-remote-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            margin-bottom: 1.5rem;
+        }
+        .ans-remote-card {
+            background: #0d1b3e;
+            border: 2px solid #234eb6;
+            border-radius: 14px;
+            padding: 0.9rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .ans-remote-card:active {
+            transform: scale(0.97);
+        }
+        .ans-remote-card.revealed {
+            background: #103282;
+            border-color: #ffd800;
+            box-shadow: 0 0 15px rgba(255, 216, 0, 0.4);
+        }
+        .ans-remote-num {
+            background: #ffd800;
+            color: #000;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.8rem;
+            flex-shrink: 0;
+        }
+        .ans-remote-text {
+            flex: 1;
+            font-weight: 800;
+            font-size: 1rem;
+            text-transform: uppercase;
+        }
+        .ans-remote-pts {
+            background: #040814;
+            border: 1px solid #ffd800;
+            color: #ffd800;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 8px;
+        }
+        .remote-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.7rem;
+            margin-bottom: 1.2rem;
+        }
+        .btn-remote {
+            padding: 0.9rem;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            border: 1px solid #3c6fe6;
+            background: #142a63;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-align: center;
+        }
+        .btn-remote:active { transform: scale(0.96); }
+        .btn-strike-remote {
+            grid-column: span 2;
+            background: linear-gradient(135deg, #be0b21, #7f0312);
+            border-color: #ff4e62;
+            font-size: 1.2rem;
+            padding: 1rem;
+        }
+        .round-award-section {
+            background: #0b1836;
+            border: 1px solid #234eb6;
+            border-radius: 14px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="remote-header">
+        <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: #ffd800; letter-spacing: 1px;">
+            📱 CONTROL REMOTO DEL CONDUCTOR
+        </h2>
+        <div class="remote-status" id="connectionStatus">
+            <span>🟢</span> EN VIVO CON PANTALLA PRINCIPAL
+        </div>
+    </div>
+
+    <!-- PREGUNTA ACTUAL EN VIVO -->
+    <div class="q-display">
+        <span id="remoteRoundBadge" style="background:#ffd800; color:#000; font-family:'Bebas Neue'; font-size:1.1rem; padding:0.2rem 0.8rem; border-radius:999px;">
+            🎁 RONDA 1 DE 5
+        </span>
+        <div id="remoteQuestionText" class="q-text">Cargando pregunta en vivo...</div>
+    </div>
+
+    <!-- BOTONES DE RESPUESTAS PARA DESTAPAR DIRECTAMENTE DESDE EL CELULAR -->
+    <div style="font-size: 0.85rem; color: #9baad8; font-weight: 800; margin-bottom: 0.5rem; text-transform: uppercase;">
+        👇 Toca una respuesta para destaparla en la pantalla de TV:
+    </div>
+    <div id="remoteAnswersGrid" class="answers-remote-grid"></div>
+
+    <!-- CONTROLES PRINCIPALES DE TV -->
+    <div class="remote-actions">
+        <button id="remBtnStrike" class="btn-remote btn-strike-remote">
+            ❌ MARCAR TACHE / ERROR (X)
+        </button>
+
+        <button id="remBtnPrev" class="btn-remote">
+            ⬅️ PREGUNTA ANTERIOR
+        </button>
+        <button id="remBtnNext" class="btn-remote" style="background:#1b3b8b; border-color:#ffd800;">
+            SIGUIENTE PREGUNTA ➡️
+        </button>
+
+        <button id="remBtnTimer10" class="btn-remote">
+            ⏱️ RELOJ 10s
+        </button>
+        <button id="remBtnTimer5" class="btn-remote">
+            ⏱️ RELOJ 5s
+        </button>
+    </div>
+
+    <!-- DAR RONDA AL EQUIPO -->
+    <div class="round-award-section">
+        <div style="font-size:0.85rem; color:#9baad8; font-weight:800; margin-bottom:0.7rem; text-transform:uppercase;">
+            🏆 Acreditar Ronda Ganada:
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.7rem;">
+            <button id="remAwardT1" class="btn-remote" style="background:#ffd800; color:#000; font-weight:900;">
+                👷‍♂️ +1 RONDA BARRETEROS
+            </button>
+            <button id="remAwardT2" class="btn-remote" style="background:#ffd800; color:#000; font-weight:900;">
+                🔦 +1 RONDA GAMBUSINOS
+            </button>
+        </div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script>
+        // CANAL DE SINCRONIZACIÓN EN TIEMPO REAL
+        const channel = new BroadcastChannel('bacis_game_channel');
+        let currentQuestion = MINING_QUESTIONS[0];
+        let revealedIndexes = [];
+
+        // Escuchar estados que manda la pantalla de TV
+        channel.onmessage = (event) => {
+            const data = event.data;
+            if (data.type === 'SYNC_STATE') {
+                currentQuestion = data.question;
+                revealedIndexes = data.revealedIndexes || [];
+                document.getElementById('remoteRoundBadge').textContent = `🎁 RONDA ${data.round} DE 5`;
+                renderRemoteScreen();
+            }
+        };
+
+        // Pedir estado inicial a la pantalla principal
+        channel.postMessage({ type: 'REQUEST_SYNC' });
+
+        function renderRemoteScreen() {
+            if (!currentQuestion) return;
+            document.getElementById('remoteQuestionText').textContent = currentQuestion.question;
+
+            const grid = document.getElementById('remoteAnswersGrid');
+            grid.innerHTML = '';
+
+            currentQuestion.answers.forEach((ans, idx) => {
+                const isRevealed = revealedIndexes.includes(idx);
+                const card = document.createElement('div');
+                card.className = `ans-remote-card ${isRevealed ? 'revealed' : ''}`;
+                card.innerHTML = `
+                    <div class="ans-remote-num">${idx + 1}</div>
+                    <span class="ans-remote-text">${ans.text}</span>
+                    <span class="ans-remote-pts">${ans.points}</span>
+                `;
+
+                card.addEventListener('click', () => {
+                    // Enviar comando para destapar tarjeta en la TV
+                    sendRemoteCommand('REVEAL_CARD', { cardIndex: idx });
+                    card.classList.add('revealed');
+                });
+
+                grid.appendChild(card);
+            });
+        }
+
+        function sendRemoteCommand(actionType, payload = {}) {
+            const msg = { type: 'REMOTE_COMMAND', action: actionType, ...payload };
+            channel.postMessage(msg);
+
+            // Sincronización alterna por servidor HTTP local (si está corriendo servidor-wifi.py)
+            fetch('/remote-command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(msg)
+            }).catch(() => {});
+        }
+
+        document.getElementById('remBtnStrike').addEventListener('click', () => sendRemoteCommand('TRIGGER_STRIKE'));
+        document.getElementById('remBtnPrev').addEventListener('click', () => sendRemoteCommand('PREV_QUESTION'));
+        document.getElementById('remBtnNext').addEventListener('click', () => sendRemoteCommand('NEXT_QUESTION'));
+        document.getElementById('remBtnTimer10').addEventListener('click', () => sendRemoteCommand('START_TIMER', { seconds: 10 }));
+        document.getElementById('remBtnTimer5').addEventListener('click', () => sendRemoteCommand('START_TIMER', { seconds: 5 }));
+        document.getElementById('remAwardT1').addEventListener('click', () => sendRemoteCommand('AWARD_ROUND_T1'));
+        document.getElementById('remAwardT2').addEventListener('click', () => sendRemoteCommand('AWARD_ROUND_T2'));
+
+        // Sondeo del servidor local para celular en Wi-Fi
+        setInterval(() => {
+            fetch('/get-state').then(r => r.json()).then(data => {
+                if (data && data.question) {
+                    currentQuestion = data.question;
+                    revealedIndexes = data.revealedIndexes || [];
+                    document.getElementById('remoteRoundBadge').textContent = `🎁 RONDA ${data.round || 1} DE 5`;
+                    renderRemoteScreen();
+                }
+            }).catch(() => {});
+        }, 800);
+    </script>
+</body>
+</html>
