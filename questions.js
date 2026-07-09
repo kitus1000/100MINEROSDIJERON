@@ -655,5 +655,61 @@ const MINING_QUESTIONS = [
             { text: "¡SEGURIDAD Y FAMILIA PRIMERO!", points: 28 },
             { text: "¡A GANAR LAS 5 RONDAS!", points: 17 }
         ]
+    },
+    {
+        id: 61,
+        question: "¿De quién es la culpa cuando la ley del mineral sale baja según los de la mina?",
+        answers: [
+            { text: "¡DE LOS GEÓLOGOS QUE MARCARON PURA TIERRA!", points: 38 },
+            { text: "¡DE LOS DE LA PLANTA QUE SE DURMIERON!", points: 28 },
+            { text: "¡DE SEGURIDAD POR SU PLÁTICA LARGA!", points: 18 },
+            { text: "¡DE LA VETA QUE SE HIZO CHIQUITA!", points: 11 },
+            { text: "¡DEL SUPERINTENDENTE POR PRESIONAR!", points: 5 }
+        ]
+    },
+    {
+        id: 62,
+        question: "¿Qué es lo que más le molesta a un Geólogo de Bacis en un recorrido subterráneo?",
+        answers: [
+            { text: "QUE EL OPERADOR HAYA TAPADO LA VETA CON TEPETATE", points: 36 },
+            { text: "QUE LE DIGAN QUE SU BRÚJULA NO SIRVE", points: 26 },
+            { text: "PERDER SU PICOTA O MARTILLO PREFERIDO", points: 20 },
+            { text: "QUE LE PREGUNTEN ¿DÓNDE ESTÁ EL ORO VISTO?", points: 13 },
+            { text: "QUE LA MUESTRA ESTÉ MOJADA CON AGUA SUCIA", points: 5 }
+        ]
+    },
+    {
+        id: 63,
+        question: "Cuando un geólogo de exploración camina por el cerro, ¿qué es lo más chistoso que le confunden que está haciendo?",
+        answers: [
+            { text: "BUSCANDO AGUA O TESOROS ESCONDIDOS", points: 41 },
+            { text: "DANDO EL ROL O PASEANDO SIN HACER NADA", points: 27 },
+            { text: "JUNTANDO PIEDRITAS BRILLANTES PARA SU NOVIA", points: 18 },
+            { text: "HABLANDO SOLO CON LOS CERROS", points: 9 },
+            { text: "JUGANDO AL EXPLORADOR", points: 5 }
+        ]
+    },
+    {
+        id: 64,
+        question: "¿Cómo identifican los geólogos de Bacis un mineral o roca en campo?",
+        answers: [
+            { text: "REVISAN CON LA LUPA CUENTAHÍLOS", points: 38 },
+            { text: "PRUEBAN SU DUREZA CON LA PICOTA", points: 28 },
+            { text: "OBSERVAN SU COLOR Y BRILLO", points: 18 },
+            { text: "HACEN LA PRUEBA DEL ÁCIDO / REACCIÓN", points: 11 },
+            { text: "MARCAN LA MUESTRA PARA LABORATORIO", points: 5 }
+        ]
+    },
+    {
+        id: 65,
+        question: "¿De qué se queja el geólogo cuando entra a la oficina de mina?",
+        answers: [
+            { text: "¡DE QUE LOS MINEROS NO LEEN SUS MAPAS!", points: 38 },
+            { text: "¡DE QUE HACE MUCHO CALOR EN EL SOCAVÓN!", points: 27 },
+            { text: "¡DE QUE LE PERDIERON LAS MUESTRAS!", points: 18 },
+            { text: "¡DE QUE SE ACABÓ EL CAFÉ CARGADO!", points: 12 },
+            { text: "¡DE QUE EL INGE DE MINAS NO LO ENTIENDE!", points: 5 }
+        ]
     }
 ];
+
