@@ -26,18 +26,13 @@
             align-items: center;
             gap: 0.4rem;
             background: #030712;
-            border: 1px solid #ffaa00;
-            color: #ffaa00;
+            border: 1px solid #00ff88;
+            color: #00ff88;
             padding: 0.4rem 1rem;
             border-radius: 999px;
             font-size: 0.85rem;
             font-weight: 800;
             margin-top: 0.5rem;
-        }
-        .remote-status.connected {
-            border-color: #00ff88;
-            color: #00ff88;
-            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
         }
         .room-config-panel {
             margin-top: 0.8rem;
@@ -83,107 +78,6 @@
             line-height: 1.35;
             margin-top: 0.5rem;
         }
-        .turn-selector-panel {
-            background: #0c1836;
-            border: 1px solid #234eb6;
-            border-radius: 14px;
-            padding: 1rem;
-            margin-bottom: 1.2rem;
-            text-align: center;
-        }
-        .turn-buttons-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.7rem;
-            margin-top: 0.5rem;
-        }
-        .btn-turn {
-            padding: 0.75rem;
-            border-radius: 10px;
-            border: 2px solid #234eb6;
-            background: #0d1b3e;
-            color: #fff;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-turn.active {
-            background: #ffd800;
-            color: #000;
-            border-color: #ffd800;
-            box-shadow: 0 0 12px rgba(255, 216, 0, 0.4);
-        }
-        .steal-warning {
-            background: #be0b21;
-            color: #fff;
-            border: 2px solid #ff4e62;
-            border-radius: 12px;
-            padding: 0.8rem;
-            text-align: center;
-            font-weight: 900;
-            font-size: 1rem;
-            margin-bottom: 1.2rem;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0% { opacity: 0.9; }
-            50% { opacity: 1; transform: scale(1.02); }
-            100% { opacity: 0.9; }
-        }
-        .answers-remote-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 0.7rem;
-            margin-bottom: 1.5rem;
-        }
-        .ans-remote-card {
-            background: #0d1b3e;
-            border: 2px solid #234eb6;
-            border-radius: 14px;
-            padding: 0.9rem 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .ans-remote-card:active {
-            transform: scale(0.97);
-        }
-        .ans-remote-card.revealed {
-            background: #103282;
-            border-color: #ffd800;
-            box-shadow: 0 0 15px rgba(255, 216, 0, 0.4);
-        }
-        .ans-remote-num {
-            background: #ffd800;
-            color: #000;
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.5rem;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 0.8rem;
-            flex-shrink: 0;
-        }
-        .ans-remote-text {
-            flex: 1;
-            font-weight: 800;
-            font-size: 1rem;
-            text-transform: uppercase;
-        }
-        .ans-remote-pts {
-            background: #040814;
-            border: 1px solid #ffd800;
-            color: #ffd800;
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.4rem;
-            padding: 0.3rem 0.6rem;
-            border-radius: 8px;
-        }
         .remote-actions {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -206,19 +100,43 @@
             text-align: center;
         }
         .btn-remote:active { transform: scale(0.96); }
-        .btn-strike-remote {
-            grid-column: span 2;
-            background: linear-gradient(135deg, #be0b21, #7f0312);
-            border-color: #ff4e62;
-            font-size: 1.2rem;
+        
+        /* Estilos Dinero Rápido */
+        .fast-question-card {
+            background: #0d1b3e;
+            border: 2px solid #3c6fe6;
+            border-radius: 16px;
             padding: 1rem;
+            margin-bottom: 1.2rem;
         }
-        .round-award-section {
-            background: #0b1836;
+        .fast-inputs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+            margin-top: 0.8rem;
+        }
+        .player-col {
+            background: rgba(4, 8, 20, 0.6);
             border: 1px solid #234eb6;
-            border-radius: 14px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
+            border-radius: 12px;
+            padding: 0.7rem;
+        }
+        .fast-btn-select {
+            background: #15327c;
+            border: 1px solid #3c6fe6;
+            color: #fff;
+            padding: 0.35rem 0.6rem;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 0.2rem;
+            display: inline-block;
+        }
+        .fast-btn-select.selected {
+            background: #ffd800;
+            color: #000;
+            border-color: #ffd800;
         }
     </style>
 </head>
@@ -226,7 +144,7 @@
 
     <div class="remote-header">
         <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: #ffd800; letter-spacing: 1px;">
-            📱 CONTROL REMOTO
+            📱 CONTROL REMOTO CONDUCTOR
         </h2>
         <div class="remote-status" id="connectionStatus">
             <span>🟡</span> CONECTANDO A PANTALLA...
@@ -239,81 +157,97 @@
         </div>
 
         <div style="display:flex; justify-content:center; gap:0.6rem; margin-top:0.7rem;">
-            <button id="btnTestSoundRemote" style="background:#ffd800; color:#000; border:none; border-radius:10px; padding:0.6rem 1rem; font-size:0.9rem; font-weight:900; cursor:pointer; box-shadow:0 0 15px rgba(255,216,0,0.5);">
+            <button id="btnTestSoundRemote" style="background:#ffd800; color:#000; border:none; border-radius:10px; padding:0.6rem 1rem; font-size:0.9rem; font-weight:900; cursor:pointer;">
                 🔊 PROBAR SONIDO EN TV
             </button>
-            <button id="btnForceSync" style="background:#1b3b8b; border:1px solid #ffd800; color:#fff; border-radius:10px; padding:0.6rem 1rem; font-size:0.9rem; font-weight:800; cursor:pointer;">
-                🔄 ACTUALIZAR PREGUNTA
+            <button id="btnToggleFastMoneyRemote" style="background:#be0b21; border:1px solid #ffd800; color:#fff; border-radius:10px; padding:0.6rem 1rem; font-size:0.9rem; font-weight:800; cursor:pointer;">
+                🔥 DINERO RÁPIDO
             </button>
         </div>
     </div>
 
-    <!-- PREGUNTA ACTUAL -->
-    <div class="q-display">
-        <span id="remoteRoundBadge" style="background:#ffd800; color:#000; font-family:'Bebas Neue'; font-size:1.1rem; padding:0.2rem 0.8rem; border-radius:999px;">
-            🎁 RONDA 1 DE 5
-        </span>
-        <div id="remoteQuestionText" class="q-text">Sincronizando pregunta con la pantalla principal...</div>
-    </div>
-
-    <!-- CONTROL DE TURNO DEL EQUIPO JUGANDO -->
-    <div class="turn-selector-panel">
-        <span style="font-size: 0.85rem; color: #9baad8; font-weight: 800; text-transform: uppercase;">
-            🎮 EQUIPO QUE TIENE EL TURNO:
-        </span>
-        <div class="turn-buttons-grid">
-            <button id="btnTurnT1" class="btn-turn">👷‍♂️ BARRETEROS</button>
-            <button id="btnTurnT2" class="btn-turn">🔦 GAMBUSINOS</button>
+    <!-- ==========================================
+       VISTA 1: JUEGO NORMAL DE TABLERO
+       ========================================== -->
+    <div id="normalGameRemoteView">
+        <div class="q-display">
+            <span id="remoteRoundBadge" style="background:#ffd800; color:#000; font-family:'Bebas Neue'; font-size:1.1rem; padding:0.2rem 0.8rem; border-radius:999px;">
+                🎁 RONDA 1 DE 5
+            </span>
+            <div id="remoteQuestionText" class="q-text">Sincronizando pregunta...</div>
         </div>
-    </div>
 
-    <!-- ADVERTENCIA DE ROBO DE TURNO (AL 3ER STRIKE) -->
-    <div id="stealWarningPanel" class="steal-warning" style="display: none;">
-        🚨 ¡3 STRIKES! OPORTUNIDAD DE ROBO
-        <div style="font-size: 0.8rem; font-weight: 600; margin-top: 0.2rem;">
-            Si el equipo contrario acierta una respuesta, ganará la ronda. Si falla (Tache), la ganará el equipo activo.
+        <div style="background:#0c1836; border:1px solid #234eb6; border-radius:14px; padding:1rem; margin-bottom:1.2rem; text-align:center;">
+            <span style="font-size: 0.85rem; color: #9baad8; font-weight: 800; text-transform: uppercase;">
+                🎮 EQUIPO QUE TIENE EL TURNO:
+            </span>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.7rem; margin-top:0.5rem;">
+                <button id="btnTurnT1" style="padding:0.75rem; border-radius:10px; border:2px solid #234eb6; background:#0d1b3e; color:#fff; font-weight:800; cursor:pointer;">👷‍♂️ BARRETEROS</button>
+                <button id="btnTurnT2" style="padding:0.75rem; border-radius:10px; border:2px solid #234eb6; background:#0d1b3e; color:#fff; font-weight:800; cursor:pointer;">💡 GAMBUSINOS</button>
+            </div>
         </div>
-    </div>
 
-    <!-- BOTONES DE RESPUESTAS -->
-    <div style="font-size: 0.85rem; color: #9baad8; font-weight: 800; margin-bottom: 0.5rem; text-transform: uppercase;">
-        👇 Toca una respuesta para destaparla en la televisión:
-    </div>
-    <div id="remoteAnswersGrid" class="answers-remote-grid"></div>
-
-    <!-- CONTROLES PRINCIPALES -->
-    <div class="remote-actions">
-        <button id="remBtnStrike" class="btn-remote btn-strike-remote">
-            ❌ MARCAR TACHE / ERROR (X)
-        </button>
-
-        <button id="remBtnPrev" class="btn-remote">
-            ⬅️ PREGUNTA ANTERIOR
-        </button>
-        <button id="remBtnNext" class="btn-remote" style="background:#1b3b8b; border-color:#ffd800;">
-            SIGUIENTE PREGUNTA ➡️
-        </button>
-
-        <button id="remBtnTimer10" class="btn-remote">
-            ⏱️ RELOJ 10s
-        </button>
-        <button id="remBtnTimer5" class="btn-remote">
-            ⏱️ RELOJ 5s
-        </button>
-    </div>
-
-    <!-- DAR RONDA AL EQUIPO -->
-    <div class="round-award-section">
-        <div style="font-size:0.85rem; color:#9baad8; font-weight:800; margin-bottom:0.7rem; text-transform:uppercase;">
-            🏆 Acreditar Ronda Ganada:
+        <div id="stealWarningPanel" style="display: none; background:#be0b21; color:#fff; border:2px solid #ff4e62; border-radius:12px; padding:0.8rem; text-align:center; font-weight:900; font-size:1rem; margin-bottom:1.2rem;">
+            🚨 ¡3 STRIKES! OPORTUNIDAD DE ROBO
         </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.7rem;">
-            <button id="remAwardT1" class="btn-remote" style="background:#ffd800; color:#000; font-weight:900;">
-                👷‍♂️ +1 RONDA BARRETEROS
+
+        <div style="font-size: 0.85rem; color: #9baad8; font-weight: 800; margin-bottom: 0.5rem; text-transform: uppercase;">
+            👇 Toca una respuesta para destaparla en la televisión:
+        </div>
+        <div id="remoteAnswersGrid" class="answers-remote-grid"></div>
+
+        <div class="remote-actions">
+            <button id="remBtnStrike" class="btn-remote btn-strike-remote">
+                ❌ MARCAR TACHE / ERROR (X)
             </button>
-            <button id="remAwardT2" class="btn-remote" style="background:#ffd800; color:#000; font-weight:900;">
-                🔦 +1 RONDA GAMBUSINOS
+            <button id="remBtnPrev" class="btn-remote">
+                ⬅️ ANTERIOR
             </button>
+            <button id="remBtnNext" class="btn-remote" style="background:#1b3b8b; border-color:#ffd800;">
+                SIGUIENTE ➡️
+            </button>
+            <button id="btnForceSync" class="btn-remote" style="background:#1b3b8b; border-color:#ffd800;">
+                🔀 SALTAR PREGUNTA (OTRA)
+            </button>
+            <button id="remBtnTimer10" class="btn-remote">
+                ⏱️ RELOJ 10s
+            </button>
+            <button id="remBtnTimer5" class="btn-remote">
+                ⏱️ RELOJ 5s
+            </button>
+        </div>
+
+        <div class="round-award-section">
+            <div style="font-size:0.85rem; color:#9baad8; font-weight:800; margin-bottom:0.7rem; text-transform:uppercase;">
+                🏆 Acreditar Ronda Ganada:
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.7rem;">
+                <button id="remAwardT1" class="btn-remote" style="background:#ffd800; color:#000; font-weight:900;">
+                    👷‍♂️ +1 RONDA BARRETEROS
+                </button>
+                <button id="remAwardT2" class="btn-remote" style="background:#ffd800; color:#000; font-weight:900;">
+                    💡 +1 RONDA GAMBUSINOS
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+       VISTA 2: CONTROLES DINERO RÁPIDO
+       ========================================== -->
+    <div id="fastMoneyRemoteView" style="display: none;">
+        <div class="q-display" style="background: linear-gradient(135deg, #be0b21, #0d1b3e);">
+            <div style="font-family:'Bebas Neue'; font-size:2rem; color:#ffd800;">🔥 MODO DINERO RÁPIDO</div>
+            <div style="display:flex; justify-content:center; gap:0.5rem; margin-top:0.7rem;">
+                <button id="btnFastTimer20" class="btn-remote" style="padding:0.4rem 0.8rem; font-size:0.8rem;">⏱️ RELOJ 20s</button>
+                <button id="btnFastTimer25" class="btn-remote" style="padding:0.4rem 0.8rem; font-size:0.8rem;">⏱️ RELOJ 25s</button>
+                <button id="btnFastTimerStop" class="btn-remote" style="background:#8f0d1b; border-color:#ff4e62; padding:0.4rem 0.8rem; font-size:0.8rem;">⏹️ PARAR</button>
+            </div>
+        </div>
+
+        <!-- LISTA DE PREGUNTAS DINERO RÁPIDO -->
+        <div id="fastQuestionsRemoteList">
+            <!-- Autogenerado -->
         </div>
     </div>
 
@@ -325,19 +259,21 @@
         let eventSource = null;
         let activeTeam = null;
         let stealMode = false;
+        
+        // Estado Dinero Rápido local
+        let fastMoneyMode = false;
+        let fastQuestions = FAST_MONEY_QUESTIONS;
+        let fastAnswers = { player1: ["","","","",""], player2: ["","","","",""] };
+        let fastPoints = { player1: [0,0,0,0,0], player2: [0,0,0,0,0] };
+        let fastRevealed = { player1: [false,false,false,false,false], player2: [false,false,false,false,false] };
+        let fastPointsRevealed = { player1: [false,false,false,false,false], player2: [false,false,false,false,false] };
 
         document.getElementById('roomCodeInput').value = roomCode;
 
         function setConnectedUI() {
             const statusEl = document.getElementById('connectionStatus');
             statusEl.classList.add('connected');
-            statusEl.innerHTML = `<span>🟢</span> CONECTADO A SALA: ${roomCode}`;
-        }
-
-        function setDisconnectedUI() {
-            const statusEl = document.getElementById('connectionStatus');
-            statusEl.classList.remove('connected');
-            statusEl.innerHTML = `<span>🟡</span> BUSCANDO SALA: ${roomCode}`;
+            statusEl.innerHTML = `<span>🟢</span> SALA: ${roomCode}`;
         }
 
         // ==========================================
@@ -346,7 +282,6 @@
         const channel = new BroadcastChannel('bacis_game_channel');
         channel.onmessage = (event) => {
             if (event.data && event.data.type === 'SYNC_STATE') {
-                setConnectedUI();
                 applySyncState(event.data);
             }
         };
@@ -360,16 +295,11 @@
             }
 
             const topicState = `bacis_100mineros_state_${roomCode.toLowerCase()}`;
-            
             eventSource = new EventSource(`https://ntfy.sh/${topicState}/sse`);
             
             eventSource.onopen = () => {
                 setConnectedUI();
                 sendRemoteCommand('REQUEST_SYNC');
-            };
-
-            eventSource.onerror = () => {
-                setDisconnectedUI();
             };
 
             eventSource.onmessage = (event) => {
@@ -378,7 +308,6 @@
                     if (data && data.message) {
                         const state = JSON.parse(data.message);
                         if (state && state.type === 'SYNC_STATE') {
-                            setConnectedUI();
                             applySyncState(state);
                         }
                     }
@@ -387,34 +316,45 @@
         }
 
         function applySyncState(data) {
-            if (!data || !data.question) return;
-            currentQuestion = data.question;
-            revealedIndexes = data.revealedIndexes || [];
-            activeTeam = data.activeTeam;
-            stealMode = data.stealMode;
+            fastMoneyMode = data.fastMoneyMode || false;
             
-            document.getElementById('remoteRoundBadge').textContent = `🎁 RONDA ${data.round || 1} DE 5`;
-            
-            // Actualizar interfaz del selector de turnos
-            document.getElementById('btnTurnT1').classList.remove('active');
-            document.getElementById('btnTurnT2').classList.remove('active');
-            if (activeTeam === 'team1') {
-                document.getElementById('btnTurnT1').classList.add('active');
-            } else if (activeTeam === 'team2') {
-                document.getElementById('btnTurnT2').classList.add('active');
-            }
-
-            // Advertencia de robo
-            const warningPanel = document.getElementById('stealWarningPanel');
-            if (stealMode) {
-                warningPanel.style.display = 'block';
-                const opponentName = activeTeam === 'team1' ? 'GAMBUSINOS' : 'BARRETEROS';
-                warningPanel.innerHTML = `🚨 ¡3 STRIKES! OPORTUNIDAD DE ROBO PARA ${opponentName}<div style="font-size: 0.8rem; font-weight: 600; margin-top: 0.2rem;">Si aciertan una respuesta oculta, ganan la ronda. Si fallan (Tache), la ganan los ${activeTeam === 'team1' ? 'BARRETEROS' : 'GAMBUSINOS'}.</div>`;
+            // Alternar vistas principales
+            if (fastMoneyMode) {
+                document.getElementById('normalGameRemoteView').style.display = 'none';
+                document.getElementById('fastMoneyRemoteView').style.display = 'block';
+                document.getElementById('btnToggleFastMoneyRemote').textContent = '📺 JUEGO NORMAL';
+                
+                // Actualizar datos de Dinero Rápido
+                fastAnswers = data.fastAnswers || fastAnswers;
+                fastPoints = data.fastPoints || fastPoints;
+                fastRevealed = data.fastRevealed || fastRevealed;
+                fastPointsRevealed = data.fastPointsRevealed || fastPointsRevealed;
+                
+                renderFastMoneyRemote();
             } else {
-                warningPanel.style.display = 'none';
-            }
+                document.getElementById('normalGameRemoteView').style.display = 'block';
+                document.getElementById('fastMoneyRemoteView').style.display = 'none';
+                document.getElementById('btnToggleFastMoneyRemote').textContent = '🔥 DINERO RÁPIDO';
+                
+                // Datos del juego normal
+                currentQuestion = data.question;
+                revealedIndexes = data.revealedIndexes || [];
+                activeTeam = data.activeTeam;
+                stealMode = data.stealMode;
+                
+                document.getElementById('remoteRoundBadge').textContent = `🎁 RONDA ${data.round || 1} DE 5`;
+                
+                // Selector de turnos
+                document.getElementById('btnTurnT1').style.background = activeTeam === 'team1' ? '#ffd800' : '#0d1b3e';
+                document.getElementById('btnTurnT1').style.color = activeTeam === 'team1' ? '#000' : '#fff';
+                document.getElementById('btnTurnT2').style.background = activeTeam === 'team2' ? '#ffd800' : '#0d1b3e';
+                document.getElementById('btnTurnT2').style.color = activeTeam === 'team2' ? '#000' : '#fff';
 
-            renderRemoteScreen();
+                const warningPanel = document.getElementById('stealWarningPanel');
+                warningPanel.style.display = stealMode ? 'block' : 'none';
+
+                renderRemoteScreen();
+            }
         }
 
         function renderRemoteScreen() {
@@ -443,13 +383,111 @@
             });
         }
 
+        // ==========================================
+        // RENDER DINERO RÁPIDO EN EL CELULAR
+        // ==========================================
+        function renderFastMoneyRemote() {
+            const list = document.getElementById('fastQuestionsRemoteList');
+            list.innerHTML = '';
+
+            fastQuestions.forEach((q, idx) => {
+                const card = document.createElement('div');
+                card.className = 'fast-question-card';
+                
+                // P1 info
+                const p1Ans = fastAnswers.player1[idx];
+                const p1Pts = fastPoints.player1[idx];
+                const p1AnsRev = fastRevealed.player1[idx];
+                const p1PtsRev = fastPointsRevealed.player1[idx];
+
+                // P2 info
+                const p2Ans = fastAnswers.player2[idx];
+                const p2Pts = fastPoints.player2[idx];
+                const p2AnsRev = fastRevealed.player2[idx];
+                const p2PtsRev = fastPointsRevealed.player2[idx];
+
+                let p1OptionsHTML = '';
+                let p2OptionsHTML = '';
+
+                // Crear botones para cada respuesta oficial
+                q.answers.forEach(a => {
+                    const isSelectedP1 = p1Ans === a.text;
+                    const isSelectedP2 = p2Ans === a.text;
+                    p1OptionsHTML += `<button class="fast-btn-select ${isSelectedP1 ? 'selected' : ''}" onclick="selectFastAnswer('player1', ${idx}, '${a.text}', ${a.points})">${a.text} (${a.points})</button>`;
+                    p2OptionsHTML += `<button class="fast-btn-select ${isSelectedP2 ? 'selected' : ''}" onclick="selectFastAnswer('player2', ${idx}, '${a.text}', ${a.points})">${a.text} (${a.points})</button>`;
+                });
+
+                // Opción 0 Puntos
+                p1OptionsHTML += `<button class="fast-btn-select ${p1Ans === 'OTRO / CERO' ? 'selected' : ''}" onclick="selectFastAnswer('player1', ${idx}, 'OTRO / CERO', 0)">OTRO (0)</button>`;
+                p2OptionsHTML += `<button class="fast-btn-select ${p2Ans === 'OTRO / CERO' ? 'selected' : ''}" onclick="selectFastAnswer('player2', ${idx}, 'OTRO / CERO', 0)">OTRO (0)</button>`;
+
+                card.innerHTML = `
+                    <div style="font-weight:800; font-size:1.05rem; border-bottom:1px solid #3c6fe6; padding-bottom:0.4rem; color:#ffd800;">
+                        Pregunta ${idx + 1}: ${q.question}
+                    </div>
+                    
+                    <div class="fast-inputs-grid">
+                        <!-- JUGADOR 1 -->
+                        <div class="player-col">
+                            <div style="font-weight:900; font-size:0.8rem; margin-bottom:0.4rem; color:#8ab4ff;">👷‍♂️ JUGADOR 1:</div>
+                            <div style="margin-bottom:0.5rem;">${p1OptionsHTML}</div>
+                            
+                            <div style="display:flex; gap:0.4rem; margin-top:0.6rem;">
+                                <button class="btn-room-save" style="background:${p1AnsRev ? '#234eb6' : '#ffd800'}; width:50%; font-size:0.75rem;" onclick="revealFastCell('player1', ${idx}, 'answer')">
+                                    ${p1AnsRev ? '🟢 MOSTRADO' : '👁️ REVELAR R.'}
+                                </button>
+                                <button class="btn-room-save" style="background:${p1PtsRev ? '#234eb6' : '#ffd800'}; width:50%; font-size:0.75rem;" onclick="revealFastCell('player1', ${idx}, 'points')">
+                                    ${p1PtsRev ? '🟢 MOSTRADO' : '👁️ REVELAR PTS'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- JUGADOR 2 -->
+                        <div class="player-col">
+                            <div style="font-weight:900; font-size:0.8rem; margin-bottom:0.4rem; color:#8ab4ff;">🔦 JUGADOR 2:</div>
+                            <div style="margin-bottom:0.5rem;">${p2OptionsHTML}</div>
+                            
+                            <div style="display:flex; gap:0.4rem; margin-top:0.6rem;">
+                                <button class="btn-room-save" style="background:${p2AnsRev ? '#234eb6' : '#ffd800'}; width:50%; font-size:0.75rem;" onclick="revealFastCell('player2', ${idx}, 'answer')">
+                                    ${p2AnsRev ? '🟢 MOSTRADO' : '👁️ REVELAR R.'}
+                                </button>
+                                <button class="btn-room-save" style="background:${p2PtsRev ? '#234eb6' : '#ffd800'}; width:50%; font-size:0.75rem;" onclick="revealFastCell('player2', ${idx}, 'points')">
+                                    ${p2PtsRev ? '🟢 MOSTRADO' : '👁️ REVELAR PTS'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        // Seleccionar respuesta de Dinero Rápido
+        window.selectFastAnswer = function(playerKey, qIdx, answerText, pointsVal) {
+            fastAnswers[playerKey][qIdx] = answerText;
+            fastPoints[playerKey][qIdx] = pointsVal;
+            
+            // Sincronizar de inmediato con la televisión
+            sendRemoteCommand('SET_FAST_DATA', {
+                answers: fastAnswers,
+                points: fastPoints
+            });
+            renderFastMoneyRemote();
+        };
+
+        // Revelar celda de Dinero Rápido
+        window.revealFastCell = function(playerKey, qIdx, cellType) {
+            sendRemoteCommand('REVEAL_FAST_CELL', {
+                playerKey: playerKey,
+                qIdx: qIdx,
+                cellType: cellType
+            });
+        };
+
         function sendRemoteCommand(actionType, payload = {}) {
             const msg = { type: 'REMOTE_COMMAND', action: actionType, ...payload };
-            
-            // 1. Local
             channel.postMessage(msg);
 
-            // 2. Nube SSE Command
             const topicCommands = `bacis_100mineros_cmd_${roomCode.toLowerCase()}`;
             fetch(`https://ntfy.sh/${topicCommands}`, {
                 method: 'POST',
@@ -463,26 +501,26 @@
                 roomCode = val;
                 localStorage.setItem('bacis_room_code', roomCode);
                 setupCloudSSE();
-                alert(`Conectado a la sala: ${roomCode}. Asegúrate que la televisión muestre este mismo código.`);
+                alert(`Conectado a la sala: ${roomCode}`);
             }
         });
 
-        // Configuración de turnos
-        document.getElementById('btnTurnT1').addEventListener('click', () => {
-            sendRemoteCommand('SET_ACTIVE_TEAM', { team: 'team1' });
-        });
-        document.getElementById('btnTurnT2').addEventListener('click', () => {
-            sendRemoteCommand('SET_ACTIVE_TEAM', { team: 'team2' });
+        // Alternar Dinero Rápido
+        document.getElementById('btnToggleFastMoneyRemote').addEventListener('click', () => {
+            sendRemoteCommand('TOGGLE_FAST_MONEY');
         });
 
-        document.getElementById('btnTestSoundRemote').addEventListener('click', () => {
-            sendRemoteCommand('TEST_SOUND');
-        });
+        // Controles de turno
+        document.getElementById('btnTurnT1').addEventListener('click', () => sendRemoteCommand('SET_ACTIVE_TEAM', { team: 'team1' }));
+        document.getElementById('btnTurnT2').addEventListener('click', () => sendRemoteCommand('SET_ACTIVE_TEAM', { team: 'team2' }));
 
-        document.getElementById('btnForceSync').addEventListener('click', () => {
-            sendRemoteCommand('REQUEST_SYNC');
-        });
+        // Controles de tiempo Dinero Rápido
+        document.getElementById('btnFastTimer20').addEventListener('click', () => sendRemoteCommand('START_FAST_TIMER', { seconds: 20 }));
+        document.getElementById('btnFastTimer25').addEventListener('click', () => sendRemoteCommand('START_FAST_TIMER', { seconds: 25 }));
+        document.getElementById('btnFastTimerStop').addEventListener('click', () => sendRemoteCommand('STOP_FAST_TIMER'));
 
+        document.getElementById('btnTestSoundRemote').addEventListener('click', () => sendRemoteCommand('TEST_SOUND'));
+        document.getElementById('btnForceSync').addEventListener('click', () => sendRemoteCommand('SKIP_QUESTION'));
         document.getElementById('remBtnStrike').addEventListener('click', () => sendRemoteCommand('TRIGGER_STRIKE'));
         document.getElementById('remBtnPrev').addEventListener('click', () => sendRemoteCommand('PREV_QUESTION'));
         document.getElementById('remBtnNext').addEventListener('click', () => sendRemoteCommand('NEXT_QUESTION'));

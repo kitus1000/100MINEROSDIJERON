@@ -1,10 +1,41 @@
 // Controlador Principal de "100 MINEROS DIJERON - EDICIÓN GRUPO BACIS"
-// Autor: Antigravity AI - Edición Robo de Turno automático al 3er Strike
+// Autor: Antigravity AI - Edición Completa con Dinero Rápido y Fuegos Artificiales en Canvas
+
+class FireworkParticle {
+    constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.radius = Math.random() * 3.5 + 1;
+        this.velocity = {
+            x: (Math.random() - 0.5) * 9,
+            y: (Math.random() - 0.5) * 9
+        };
+        this.alpha = 1;
+        this.decay = Math.random() * 0.015 + 0.012;
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        ctx.fillStyle = this.color;
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 6;
+        ctx.fill();
+        ctx.restore();
+    }
+    update() {
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
+        this.velocity.y += 0.06; // Gravedad
+        this.alpha -= this.decay;
+    }
+}
 
 class MiningGameShow {
     constructor() {
         this.questions = this.loadQuestions();
-        this.shuffleQuestions(this.questions);
         this.playedIds = this.loadPlayedIds();
         this.currentQuestionIndex = this.findNextUnplayedIndex(0);
 
@@ -27,14 +58,42 @@ class MiningGameShow {
         
         // Control de turnos y strikes
         this.activeTeam = null; // 'team1', 'team2', o null
-        this.stealMode = false; // true cuando alcanzan 3 strikes
+        this.stealMode = false;
         this.currentStrikes = 0;
         
         this.soundEnabled = true;
 
-        // Temporizador
+        // Temporizador normal
         this.timerInterval = null;
         this.timeLeft = 10;
+
+        // ==========================================
+        // VARIABLES DE DINERO RÁPIDO (FAST MONEY)
+        // ==========================================
+        this.fastMoneyMode = false;
+        this.fastQuestions = FAST_MONEY_QUESTIONS;
+        
+        // Inicializar respuestas y puntos vacíos para ambos jugadores
+        this.fastAnswers = {
+            player1: ["", "", "", "", ""],
+            player2: ["", "", "", "", ""]
+        };
+        this.fastPoints = {
+            player1: [0, 0, 0, 0, 0],
+            player2: [0, 0, 0, 0, 0]
+        };
+        // Control de si ya se revelaron visualmente en el tablero de TV
+        this.fastRevealed = {
+            player1: [false, false, false, false, false],
+            player2: [false, false, false, false, false]
+        };
+        this.fastPointsRevealed = {
+            player1: [false, false, false, false, false],
+            player2: [false, false, false, false, false]
+        };
+
+        this.fastTimerInterval = null;
+        this.fastTimeLeft = 20;
 
         // Elementos de audio
         this.sounds = {
@@ -165,6 +224,13 @@ class MiningGameShow {
         this.cheatSheetItems = document.getElementById('cheatSheetItems');
         this.podiumTeam1 = document.getElementById('podiumTeam1');
         this.podiumTeam2 = document.getElementById('podiumTeam2');
+        
+        // Elementos Dinero Rápido
+        this.fastMoneyArena = document.getElementById('fastMoneyArena');
+        this.normalGameArena = document.getElementById('normalGameArena');
+        this.normalGameStrip = document.getElementById('normalGameStrip');
+        this.fastTimerDigits = document.getElementById('fastTimerDigits');
+        this.fastTotalPointsBox = document.getElementById('fastTotalPointsBox');
     }
 
     bindEvents() {
@@ -252,6 +318,16 @@ class MiningGameShow {
         document.getElementById('t2AwardRound').addEventListener('click', () => {
             this.awardRoundTeam2();
         });
+
+        // Alternar Dinero Rápido
+        document.getElementById('btnToggleFastMoney').addEventListener('click', () => {
+            this.toggleFastMoneyMode();
+        });
+
+        // Controles de tiempo Dinero Rápido
+        document.getElementById('btnFastStart20').addEventListener('click', () => this.startFastTimer(20));
+        document.getElementById('btnFastStart25').addEventListener('click', () => this.startFastTimer(25));
+        document.getElementById('btnFastStop').addEventListener('click', () => this.stopFastTimer());
 
         document.getElementById('btnRestartMatch').addEventListener('click', () => {
             this.team1RoundsWon = 0;
@@ -343,10 +419,26 @@ class MiningGameShow {
         } else if (cmd.action === 'REQUEST_SYNC') {
             this.broadcastSyncState();
         }
+        
+        // Comandos Dinero Rápido
+        else if (cmd.action === 'TOGGLE_FAST_MONEY') {
+            this.toggleFastMoneyMode();
+        } else if (cmd.action === 'SET_FAST_DATA') {
+            this.fastAnswers = cmd.answers;
+            this.fastPoints = cmd.points;
+            this.renderFastMoneyBoard();
+            this.checkFastTotalPoints();
+        } else if (cmd.action === 'REVEAL_FAST_CELL') {
+            this.revealFastCell(cmd.playerKey, cmd.qIdx, cmd.cellType);
+        } else if (cmd.action === 'START_FAST_TIMER') {
+            this.startFastTimer(cmd.seconds);
+        } else if (cmd.action === 'STOP_FAST_TIMER') {
+            this.stopFastTimer();
+        }
     }
 
     setActiveTeam(team) {
-        this.activeTeam = team; // 'team1', 'team2', o null
+        this.activeTeam = team;
         this.updateActiveTeamUI();
         this.broadcastSyncState();
     }
@@ -378,7 +470,15 @@ class MiningGameShow {
             revealedIndexes: revealed,
             activeTeam: this.activeTeam,
             stealMode: this.stealMode,
-            currentStrikes: this.currentStrikes
+            currentStrikes: this.currentStrikes,
+            
+            // Estado Dinero Rápido
+            fastMoneyMode: this.fastMoneyMode,
+            fastQuestions: this.fastQuestions,
+            fastAnswers: this.fastAnswers,
+            fastPoints: this.fastPoints,
+            fastRevealed: this.fastRevealed,
+            fastPointsRevealed: this.fastPointsRevealed
         };
 
         this.syncChannel.postMessage({
@@ -576,7 +676,6 @@ class MiningGameShow {
                     this.playSound('correct');
                     this.stopTimer();
 
-                    // Si estábamos en modo de robo y aciertan, el equipo contrario roba con éxito
                     if (this.stealMode) {
                         const stealingTeam = this.activeTeam === 'team1' ? 'team2' : 'team1';
                         const stealingName = stealingTeam === 'team1' ? this.team1Name : this.team2Name;
@@ -622,7 +721,6 @@ class MiningGameShow {
 
     triggerStrike() {
         if (this.stealMode) {
-            // Si ya estábamos en modo de robo y fallan el robo, el equipo activo original gana la ronda
             this.playSound('incorrect');
             const originalTeamName = this.activeTeam === 'team1' ? this.team1Name : this.team2Name;
             this.showBigTemporaryBanner(`❌ ROBO FALLIDO`, `${originalTeamName} mantiene sus puntos y gana la ronda`);
@@ -651,7 +749,6 @@ class MiningGameShow {
         setTimeout(() => {
             this.strikeOverlay.classList.remove('active');
             
-            // Si llega a 3 strikes, se activa la oportunidad de robo para el contrario
             if (this.currentStrikes === 3 && !this.stealMode) {
                 this.stealMode = true;
                 const opposingTeamName = this.activeTeam === 'team1' ? this.team2Name : this.team1Name;
@@ -757,6 +854,192 @@ class MiningGameShow {
         document.getElementById('modalAddQuestion').classList.remove('active');
         document.getElementById('formAddQuestion').reset();
         alert('¡Pregunta minera sorpresa agregada con éxito!');
+    }
+
+    // ==========================================
+    // MÉTODOS DE DINERO RÁPIDO (FAST MONEY)
+    // ==========================================
+    toggleFastMoneyMode() {
+        this.fastMoneyMode = !this.fastMoneyMode;
+        
+        if (this.fastMoneyMode) {
+            this.normalGameArena.style.display = 'none';
+            this.normalGameStrip.style.display = 'none';
+            this.fastMoneyArena.style.display = 'block';
+            document.getElementById('btnToggleFastMoney').textContent = '📺 VOLVER AL JUEGO';
+            this.renderFastMoneyBoard();
+        } else {
+            this.normalGameArena.style.display = 'grid';
+            this.normalGameStrip.style.display = 'flex';
+            this.fastMoneyArena.style.display = 'none';
+            document.getElementById('btnToggleFastMoney').textContent = '🔥 DINERO RÁPIDO';
+        }
+        
+        this.playSound('button');
+        this.broadcastSyncState();
+    }
+
+    renderFastMoneyBoard() {
+        const body = document.getElementById('fastMoneyTableBody');
+        body.innerHTML = '';
+
+        this.fastQuestions.forEach((q, idx) => {
+            const row = document.createElement('tr');
+            
+            // Celdas de Jugador 1
+            const p1AnsRevealed = this.fastRevealed.player1[idx];
+            const p1PtsRevealed = this.fastPointsRevealed.player1[idx];
+            const p1AnsText = p1AnsRevealed ? (this.fastAnswers.player1[idx] || "---") : "";
+            const p1PtsText = p1PtsRevealed ? this.fastPoints.player1[idx] : "";
+
+            // Celdas de Jugador 2
+            const p2AnsRevealed = this.fastRevealed.player2[idx];
+            const p2PtsRevealed = this.fastPointsRevealed.player2[idx];
+            const p2AnsText = p2AnsRevealed ? (this.fastAnswers.player2[idx] || "---") : "";
+            const p2PtsText = p2PtsRevealed ? this.fastPoints.player2[idx] : "";
+
+            row.innerHTML = `
+                <td style="padding: 1rem; font-weight:800; color:#fff;">${idx + 1}. ${q.question}</td>
+                
+                <td style="padding: 0.6rem;">
+                    <div class="fast-ans-cell ${p1AnsRevealed ? 'revealed' : 'empty'}">${p1AnsText}</div>
+                </td>
+                <td style="padding: 0.6rem; text-align:center;">
+                    <div class="fast-pts-cell ${p1PtsRevealed ? 'revealed' : ''}">${p1PtsText}</div>
+                </td>
+                
+                <td style="padding: 0.6rem;">
+                    <div class="fast-ans-cell ${p2AnsRevealed ? 'revealed' : 'empty'}">${p2AnsText}</div>
+                </td>
+                <td style="padding: 0.6rem; text-align:center;">
+                    <div class="fast-pts-cell ${p2PtsRevealed ? 'revealed' : ''}">${p2PtsText}</div>
+                </td>
+            `;
+            body.appendChild(row);
+        });
+    }
+
+    revealFastCell(playerKey, qIdx, cellType) {
+        if (cellType === 'answer') {
+            this.fastRevealed[playerKey][qIdx] = true;
+            this.playSound('button');
+        } else if (cellType === 'points') {
+            this.fastPointsRevealed[playerKey][qIdx] = true;
+            const pts = Number(this.fastPoints[playerKey][qIdx]) || 0;
+            if (pts > 0) {
+                this.playSound('correct');
+            } else {
+                this.playSound('incorrect');
+            }
+        }
+        
+        this.renderFastMoneyBoard();
+        this.checkFastTotalPoints();
+        this.broadcastSyncState();
+    }
+
+    checkFastTotalPoints() {
+        let total = 0;
+        
+        // Sumar puntos revelados del Jugador 1
+        this.fastPoints.player1.forEach((pts, i) => {
+            if (this.fastPointsRevealed.player1[i]) {
+                total += (Number(pts) || 0);
+            }
+        });
+
+        // Sumar puntos revelados del Jugador 2
+        this.fastPoints.player2.forEach((pts, i) => {
+            if (this.fastPointsRevealed.player2[i]) {
+                total += (Number(pts) || 0);
+            }
+        });
+
+        this.fastTotalPointsBox.textContent = total;
+
+        // Si llega a 100 puntos y no se ha celebrado aún
+        if (total >= 100 && !this.fastMoneyCelebrated) {
+            this.fastMoneyCelebrated = true;
+            this.triggerVictoryCelebration();
+        } else if (total < 100) {
+            this.fastMoneyCelebrated = false;
+        }
+    }
+
+    triggerVictoryCelebration() {
+        this.playSound('win');
+        this.showBigTemporaryBanner(`🎉 ¡100 PUNTOS COMPLETADOS!`, `¡FELICIDADES! HAN GANADO DINERO RÁPIDO`);
+        this.startFireworks();
+    }
+
+    startFireworks() {
+        const canvas = document.getElementById('fireworksCanvas');
+        if (!canvas) return;
+        canvas.style.display = 'block';
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particles = [];
+        const colors = ['#ffd800', '#ff0055', '#00ff88', '#00e1ff', '#ffaa00', '#ffffff'];
+
+        const loop = () => {
+            if (canvas.style.display === 'none') return;
+            requestAnimationFrame(loop);
+            ctx.fillStyle = 'rgba(4, 9, 22, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Crear explosiones
+            if (Math.random() < 0.12) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * (canvas.height * 0.6);
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                for (let i = 0; i < 45; i++) {
+                    particles.push(new FireworkParticle(x, y, color));
+                }
+            }
+
+            particles.forEach((p, index) => {
+                if (p.alpha <= 0) {
+                    particles.splice(index, 1);
+                } else {
+                    p.update();
+                    p.draw(ctx);
+                }
+            });
+        };
+        loop();
+
+        setTimeout(() => {
+            canvas.style.display = 'none';
+        }, 15000);
+    }
+
+    startFastTimer(seconds) {
+        this.stopFastTimer();
+        this.fastTimeLeft = seconds;
+        this.updateFastTimerDisplay();
+
+        this.fastTimerInterval = setInterval(() => {
+            this.fastTimeLeft--;
+            this.updateFastTimerDisplay();
+
+            if (this.fastTimeLeft <= 0) {
+                this.stopFastTimer();
+                this.playSound('incorrect');
+            }
+        }, 1000);
+    }
+
+    stopFastTimer() {
+        if (this.fastTimerInterval) {
+            clearInterval(this.fastTimerInterval);
+            this.fastTimerInterval = null;
+        }
+    }
+
+    updateFastTimerDisplay() {
+        this.fastTimerDigits.textContent = `${this.fastTimeLeft}s`;
     }
 }
 

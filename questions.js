@@ -713,3 +713,62 @@ const MINING_QUESTIONS = [
     }
 ];
 
+// Preguntas fijas rápidas para la ronda Dinero Rápido (Fast Money)
+const FAST_MONEY_QUESTIONS = [
+    {
+        id: 101,
+        question: "Menciona una herramienta indispensable para un minero:",
+        answers: [
+            { text: "PICO / PICOTA", points: 40 },
+            { text: "PALA", points: 25 },
+            { text: "MARTILLO", points: 15 },
+            { text: "LÁMPARA", points: 10 },
+            { text: "CINCEL", points: 5 }
+        ]
+    },
+    {
+        id: 102,
+        question: "Menciona una parte del Equipo de Protección Personal (EPP):",
+        answers: [
+            { text: "CASCO", points: 45 },
+            { text: "BOTAS", points: 25 },
+            { text: "LENTES", points: 15 },
+            { text: "TAPONES", points: 8 },
+            { text: "GUANTES", points: 5 }
+        ]
+    },
+    {
+        id: 103,
+        question: "Menciona un departamento de la mina de Bacis:",
+        answers: [
+            { text: "MINAS / OPERACIONES", points: 38 },
+            { text: "GEOLOGÍA", points: 27 },
+            { text: "PLANTA", points: 18 },
+            { text: "SEGURIDAD", points: 10 },
+            { text: "MANTENIMIENTO", points: 5 }
+        ]
+    },
+    {
+        id: 104,
+        question: "¿Qué es lo primero que hace el minero al llegar a casa?",
+        answers: [
+            { text: "BAÑARSE", points: 42 },
+            { text: "DORMIR", points: 25 },
+            { text: "ECHARSE UNA CHELA", points: 18 },
+            { text: "COMER", points: 10 },
+            { text: "VER A SU FAMILIA", points: 5 }
+        ]
+    },
+    {
+        id: 105,
+        question: "Menciona un mineral que se extrae en Bacis:",
+        answers: [
+            { text: "ORO", points: 55 },
+            { text: "PLATA", points: 30 },
+            { text: "COBRE", points: 10 },
+            { text: "PLOMO", points: 5 }
+        ]
+    }
+];
+
+

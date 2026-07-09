@@ -943,3 +943,77 @@ body {
     letter-spacing: 1px;
 }
 
+/* =========================================
+   ESTILOS DE DINERO RÁPIDO
+   ========================================= */
+.fast-money-table {
+    margin-top: 1rem;
+}
+
+.fast-money-table th {
+    padding: 1rem;
+    font-size: 1.1rem;
+    letter-spacing: 1.5px;
+}
+
+.fast-money-table td {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(35, 78, 182, 0.3);
+    font-size: 1.2rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.fast-ans-cell {
+    background: #0d1b3e;
+    border: 2px solid #234eb6;
+    border-radius: 10px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 800;
+    text-transform: uppercase;
+    transition: all 0.3s;
+}
+
+.fast-ans-cell.empty {
+    border-style: dashed;
+    border-color: rgba(35, 78, 182, 0.4);
+    background: transparent;
+}
+
+.fast-ans-cell.revealed {
+    background: linear-gradient(180deg, #183e9d 0%, #0d2564 100%);
+    border-color: #ffd800;
+    box-shadow: 0 0 15px rgba(255, 216, 0, 0.3);
+    animation: revealFlash 0.5s ease;
+}
+
+.fast-pts-cell {
+    background: #040814;
+    border: 2px solid #234eb6;
+    border-radius: 10px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    color: #ffd800;
+    transition: all 0.3s;
+}
+
+.fast-pts-cell.revealed {
+    border-color: #ffd800;
+    box-shadow: 0 0 15px rgba(255, 216, 0, 0.4);
+    animation: revealFlash 0.5s ease;
+}
+
+@keyframes revealFlash {
+    0% { transform: scale(0.9); filter: brightness(1.8); }
+    100% { transform: scale(1); filter: brightness(1); }
+}
+
+

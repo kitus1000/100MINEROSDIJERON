@@ -11,6 +11,9 @@
 </head>
 <body>
 
+    <!-- CANVAS DE FUEGOS ARTIFICIALES -->
+    <canvas id="fireworksCanvas" style="position: fixed; inset: 0; pointer-events: none; z-index: 9999; display: none;"></canvas>
+
     <!-- FONDO DE PARTÍCULAS DORADAS FLOTANTES -->
     <div id="particlesBg" class="particles-bg"></div>
 
@@ -89,10 +92,13 @@
         </div>
 
         <div class="header-controls">
-            <span id="cloudStatusBadge" style="background:#0b1836; border:1px solid #00ff88; color:#00ff88; font-size:0.75rem; font-weight:800; padding:0.4rem 0.8rem; border-radius:999px;">
+            <span id="cloudStatusBadge" style="background:#0b1836; border:1px solid #00ff88; color:#00ff88; font-size:0.75rem; font-weight:800; padding:0.4rem 0.8rem; border-radius:999px; cursor:pointer;">
                 🟢 NUBE BACIS ACTIVA
             </span>
-            <button id="btnPlayIntro" class="btn-glow btn-gold" title="Música del programa">
+            <button id="btnToggleFastMoney" class="btn-glow btn-gold" title="Activa la ronda de dinero rápido">
+                <span>🔥 DINERO RÁPIDO</span>
+            </button>
+            <button id="btnPlayIntro" class="btn-glow" title="Música del programa">
                 <span>🎵 INTRO</span>
             </button>
             <button id="btnToggleSound" class="btn-glow">
@@ -105,7 +111,7 @@
     </header>
 
     <!-- FRANJA DE RONDA Y RELOJ -->
-    <section class="surprise-banner-strip">
+    <section class="surprise-banner-strip" id="normalGameStrip">
         <div id="surpriseBadge" class="surprise-badge">
             <span>🎁</span> RONDA 1 DE 5
         </div>
@@ -122,7 +128,7 @@
     </section>
 
     <!-- ESTADIO PRINCIPAL AL MEJOR DE 5 RONDAS -->
-    <main class="game-arena">
+    <main class="game-arena" id="normalGameArena">
         
         <!-- EQUIPO 1: LOS BARRETEROS -->
         <aside id="podiumTeam1" class="team-podium">
@@ -225,6 +231,55 @@
             <button id="t2AwardRound" class="btn-award-round">🏆 SUMAR RONDA (+1)</button>
         </aside>
 
+    </main>
+
+    <!-- =========================================
+       SECCIÓN DE LA RONDA FINAL: DINERO RÁPIDO
+       ========================================= -->
+    <main id="fastMoneyArena" class="fast-money-arena" style="display: none; max-width: 1000px; margin: 1.5rem auto; padding: 0 1.5rem;">
+        <div class="fast-money-header" style="text-align: center; background: linear-gradient(135deg, #be0b21, #0d1b3e); border: 3px solid #ffd800; border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 12px 35px rgba(0,0,0,0.85);">
+            <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; color: #ffd800; text-shadow: 0 0 20px rgba(255,216,0,0.6); letter-spacing: 2px; margin: 0;">🔥 RONDA DE DINERO RÁPIDO 🔥</h2>
+            <p style="color: #9baad8; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-top: 0.3rem;">Dos participantes • Meta: 100 Puntos para ganar</p>
+            
+            <!-- CONTROLES DINERO RÁPIDO -->
+            <div style="display:flex; justify-content:center; align-items:center; gap: 1.5rem; margin-top: 1rem;">
+                <div class="fast-timer-panel" style="background:#040814; border: 2px solid #ffd800; padding:0.4rem 1.5rem; border-radius:12px; display:flex; align-items:center; gap: 1rem;">
+                    <span style="font-weight:900; color:#fff; font-size:1.1rem;">⏱️ TIEMPO:</span>
+                    <span id="fastTimerDigits" style="font-family:'Bebas Neue'; font-size: 2.2rem; color:#00ff88; text-shadow: 0 0 12px rgba(0,255,136,0.6);">20s</span>
+                </div>
+                <button id="btnFastStart20" class="btn-timer" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">⏱️ INICIAR 20s</button>
+                <button id="btnFastStart25" class="btn-timer" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">⏱️ INICIAR 25s</button>
+                <button id="btnFastStop" class="btn-timer" style="background:#8f0d1b; border-color:#ff4e62; padding: 0.6rem 1.2rem; font-size: 0.9rem;">⏹️ PARAR</button>
+            </div>
+        </div>
+
+        <!-- TABLERO DINERO RÁPIDO -->
+        <div class="fast-board-frame" style="background:#060c1d; border: 8px solid #0f2355; border-radius:24px; padding: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.85); position:relative;">
+            <div class="led-lights"></div>
+            
+            <table class="fast-money-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 1.1rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #234eb6; color: #9baad8; font-weight: 800; text-transform: uppercase;">
+                        <th style="padding: 1rem; width: 45%;">PREGUNTA</th>
+                        <th style="padding: 1rem; width: 20%; text-align: center;">JUGADOR 1</th>
+                        <th style="padding: 1rem; width: 7%; text-align: center;">PTS</th>
+                        <th style="padding: 1rem; width: 20%; text-align: center;">JUGADOR 2</th>
+                        <th style="padding: 1rem; width: 8%; text-align: center;">PTS</th>
+                    </tr>
+                </thead>
+                <tbody id="fastMoneyTableBody">
+                    <!-- Filas autogeneradas -->
+                </tbody>
+            </table>
+
+            <!-- TOTAL DE PUNTOS ACUMULADOS -->
+            <div style="display:flex; justify-content: flex-end; align-items:center; gap: 1.5rem; margin-top: 2rem; border-top: 3px double #ffd800; padding-top: 1.5rem;">
+                <span style="font-family:'Bebas Neue'; font-size: 2.2rem; color:#fff;">PUNTUACIÓN TOTAL:</span>
+                <div id="fastTotalPointsBox" style="background:#040814; border:3px solid #ffd800; border-radius:15px; width: 140px; height: 75px; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue'; font-size:3.5rem; color:#ffd800; text-shadow:0 0 20px rgba(255,216,0,0.8);">
+                    0
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- OVERLAY DRAMÁTICO DE TACHE -->
