@@ -83,6 +83,53 @@
             line-height: 1.35;
             margin-top: 0.5rem;
         }
+        .turn-selector-panel {
+            background: #0c1836;
+            border: 1px solid #234eb6;
+            border-radius: 14px;
+            padding: 1rem;
+            margin-bottom: 1.2rem;
+            text-align: center;
+        }
+        .turn-buttons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.7rem;
+            margin-top: 0.5rem;
+        }
+        .btn-turn {
+            padding: 0.75rem;
+            border-radius: 10px;
+            border: 2px solid #234eb6;
+            background: #0d1b3e;
+            color: #fff;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-turn.active {
+            background: #ffd800;
+            color: #000;
+            border-color: #ffd800;
+            box-shadow: 0 0 12px rgba(255, 216, 0, 0.4);
+        }
+        .steal-warning {
+            background: #be0b21;
+            color: #fff;
+            border: 2px solid #ff4e62;
+            border-radius: 12px;
+            padding: 0.8rem;
+            text-align: center;
+            font-weight: 900;
+            font-size: 1rem;
+            margin-bottom: 1.2rem;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.9; }
+            50% { opacity: 1; transform: scale(1.02); }
+            100% { opacity: 0.9; }
+        }
         .answers-remote-grid {
             display: flex;
             flex-direction: column;
@@ -201,7 +248,7 @@
         </div>
     </div>
 
-    <!-- PREGUNTA ACTUAL EN VIVO -->
+    <!-- PREGUNTA ACTUAL -->
     <div class="q-display">
         <span id="remoteRoundBadge" style="background:#ffd800; color:#000; font-family:'Bebas Neue'; font-size:1.1rem; padding:0.2rem 0.8rem; border-radius:999px;">
             🎁 RONDA 1 DE 5
@@ -209,13 +256,32 @@
         <div id="remoteQuestionText" class="q-text">Sincronizando pregunta con la pantalla principal...</div>
     </div>
 
-    <!-- BOTONES DE RESPUESTAS PARA DESTAPAR DIRECTAMENTE DESDE EL CELULAR -->
+    <!-- CONTROL DE TURNO DEL EQUIPO JUGANDO -->
+    <div class="turn-selector-panel">
+        <span style="font-size: 0.85rem; color: #9baad8; font-weight: 800; text-transform: uppercase;">
+            🎮 EQUIPO QUE TIENE EL TURNO:
+        </span>
+        <div class="turn-buttons-grid">
+            <button id="btnTurnT1" class="btn-turn">👷‍♂️ BARRETEROS</button>
+            <button id="btnTurnT2" class="btn-turn">🔦 GAMBUSINOS</button>
+        </div>
+    </div>
+
+    <!-- ADVERTENCIA DE ROBO DE TURNO (AL 3ER STRIKE) -->
+    <div id="stealWarningPanel" class="steal-warning" style="display: none;">
+        🚨 ¡3 STRIKES! OPORTUNIDAD DE ROBO
+        <div style="font-size: 0.8rem; font-weight: 600; margin-top: 0.2rem;">
+            Si el equipo contrario acierta una respuesta, ganará la ronda. Si falla (Tache), la ganará el equipo activo.
+        </div>
+    </div>
+
+    <!-- BOTONES DE RESPUESTAS -->
     <div style="font-size: 0.85rem; color: #9baad8; font-weight: 800; margin-bottom: 0.5rem; text-transform: uppercase;">
         👇 Toca una respuesta para destaparla en la televisión:
     </div>
     <div id="remoteAnswersGrid" class="answers-remote-grid"></div>
 
-    <!-- CONTROLES PRINCIPALES DE TV -->
+    <!-- CONTROLES PRINCIPALES -->
     <div class="remote-actions">
         <button id="remBtnStrike" class="btn-remote btn-strike-remote">
             ❌ MARCAR TACHE / ERROR (X)
@@ -257,6 +323,8 @@
         let revealedIndexes = [];
         let roomCode = localStorage.getItem('bacis_room_code') || 'BACIS100';
         let eventSource = null;
+        let activeTeam = null;
+        let stealMode = false;
 
         document.getElementById('roomCodeInput').value = roomCode;
 
@@ -292,7 +360,6 @@
             }
 
             const topicState = `bacis_100mineros_state_${roomCode.toLowerCase()}`;
-            console.log("Conectando a estado en la nube:", topicState);
             
             eventSource = new EventSource(`https://ntfy.sh/${topicState}/sse`);
             
@@ -323,7 +390,30 @@
             if (!data || !data.question) return;
             currentQuestion = data.question;
             revealedIndexes = data.revealedIndexes || [];
+            activeTeam = data.activeTeam;
+            stealMode = data.stealMode;
+            
             document.getElementById('remoteRoundBadge').textContent = `🎁 RONDA ${data.round || 1} DE 5`;
+            
+            // Actualizar interfaz del selector de turnos
+            document.getElementById('btnTurnT1').classList.remove('active');
+            document.getElementById('btnTurnT2').classList.remove('active');
+            if (activeTeam === 'team1') {
+                document.getElementById('btnTurnT1').classList.add('active');
+            } else if (activeTeam === 'team2') {
+                document.getElementById('btnTurnT2').classList.add('active');
+            }
+
+            // Advertencia de robo
+            const warningPanel = document.getElementById('stealWarningPanel');
+            if (stealMode) {
+                warningPanel.style.display = 'block';
+                const opponentName = activeTeam === 'team1' ? 'GAMBUSINOS' : 'BARRETEROS';
+                warningPanel.innerHTML = `🚨 ¡3 STRIKES! OPORTUNIDAD DE ROBO PARA ${opponentName}<div style="font-size: 0.8rem; font-weight: 600; margin-top: 0.2rem;">Si aciertan una respuesta oculta, ganan la ronda. Si fallan (Tache), la ganan los ${activeTeam === 'team1' ? 'BARRETEROS' : 'GAMBUSINOS'}.</div>`;
+            } else {
+                warningPanel.style.display = 'none';
+            }
+
             renderRemoteScreen();
         }
 
@@ -375,6 +465,14 @@
                 setupCloudSSE();
                 alert(`Conectado a la sala: ${roomCode}. Asegúrate que la televisión muestre este mismo código.`);
             }
+        });
+
+        // Configuración de turnos
+        document.getElementById('btnTurnT1').addEventListener('click', () => {
+            sendRemoteCommand('SET_ACTIVE_TEAM', { team: 'team1' });
+        });
+        document.getElementById('btnTurnT2').addEventListener('click', () => {
+            sendRemoteCommand('SET_ACTIVE_TEAM', { team: 'team2' });
         });
 
         document.getElementById('btnTestSoundRemote').addEventListener('click', () => {

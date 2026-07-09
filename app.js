@@ -1,5 +1,5 @@
 // Controlador Principal de "100 MINEROS DIJERON - EDICIÓN GRUPO BACIS"
-// Autor: Antigravity AI - Edición Sincronización SSE en Nube Directa (ntfy.sh)
+// Autor: Antigravity AI - Edición Robo de Turno automático al 3er Strike
 
 class MiningGameShow {
     constructor() {
@@ -23,7 +23,12 @@ class MiningGameShow {
         this.team2RoundsWon = 0;
         this.team1Name = 'LOS BARRETEROS';
         this.team2Name = 'LOS GAMBUSINOS';
+        
+        // Control de turnos y strikes
+        this.activeTeam = null; // 'team1', 'team2', o null
+        this.stealMode = false; // true cuando alcanzan 3 strikes
         this.currentStrikes = 0;
+        
         this.soundEnabled = true;
 
         // Temporizador
@@ -47,7 +52,6 @@ class MiningGameShow {
     }
 
     setupCloudSyncSSE() {
-        // Cerrar conexión previa si existe
         if (this.eventSource) {
             this.eventSource.close();
         }
@@ -84,12 +88,9 @@ class MiningGameShow {
                         this.handleRemoteCommand(cmd);
                     }
                 }
-            } catch (e) {
-                // Mensaje de sistema o formato no JSON
-            }
+            } catch (e) {}
         };
 
-        // Enviar estado inicial
         setTimeout(() => this.broadcastSyncState(), 1000);
     }
 
@@ -153,6 +154,8 @@ class MiningGameShow {
         this.bigRoundSubText = document.getElementById('bigRoundSubText');
         this.hostCheatSheet = document.getElementById('hostCheatSheet');
         this.cheatSheetItems = document.getElementById('cheatSheetItems');
+        this.podiumTeam1 = document.getElementById('podiumTeam1');
+        this.podiumTeam2 = document.getElementById('podiumTeam2');
     }
 
     bindEvents() {
@@ -267,7 +270,6 @@ class MiningGameShow {
             this.handleCustomQuestionSubmit();
         });
 
-        // Configuración de Código de Sala en la UI si el usuario hace clic en el indicador de nube
         const cloudBadge = document.getElementById('cloudStatusBadge');
         if (cloudBadge) {
             cloudBadge.addEventListener('click', () => {
@@ -325,8 +327,29 @@ class MiningGameShow {
             this.awardRoundTeam1();
         } else if (cmd.action === 'AWARD_ROUND_T2') {
             this.awardRoundTeam2();
+        } else if (cmd.action === 'SET_ACTIVE_TEAM') {
+            this.setActiveTeam(cmd.team);
         } else if (cmd.action === 'REQUEST_SYNC') {
             this.broadcastSyncState();
+        }
+    }
+
+    setActiveTeam(team) {
+        this.activeTeam = team; // 'team1', 'team2', o null
+        this.updateActiveTeamUI();
+        this.broadcastSyncState();
+    }
+
+    updateActiveTeamUI() {
+        if (this.podiumTeam1 && this.podiumTeam2) {
+            this.podiumTeam1.classList.remove('active-turn');
+            this.podiumTeam2.classList.remove('active-turn');
+            
+            if (this.activeTeam === 'team1') {
+                this.podiumTeam1.classList.add('active-turn');
+            } else if (this.activeTeam === 'team2') {
+                this.podiumTeam2.classList.add('active-turn');
+            }
         }
     }
 
@@ -341,16 +364,17 @@ class MiningGameShow {
         const stateObj = {
             round: this.currentMatchRound,
             question: this.questions[this.currentQuestionIndex],
-            revealedIndexes: revealed
+            revealedIndexes: revealed,
+            activeTeam: this.activeTeam,
+            stealMode: this.stealMode,
+            currentStrikes: this.currentStrikes
         };
 
-        // 1. Local
         this.syncChannel.postMessage({
             type: 'SYNC_STATE',
             ...stateObj
         });
 
-        // 2. Nube SSE (ntfy.sh)
         const topicState = `bacis_100mineros_state_${this.roomCode.toLowerCase()}`;
         fetch(`https://ntfy.sh/${topicState}`, {
             method: 'POST',
@@ -363,6 +387,10 @@ class MiningGameShow {
             this.currentMatchRound = (this.currentMatchRound % 5) + 1;
             const nextIdx = this.findNextUnplayedIndex((this.currentQuestionIndex + 1) % this.questions.length);
             this.currentQuestionIndex = nextIdx;
+            this.activeTeam = null;
+            this.stealMode = false;
+            this.currentStrikes = 0;
+            this.updateActiveTeamUI();
             this.renderQuestion();
             this.showRoundAnnouncement(this.currentMatchRound);
         });
@@ -372,6 +400,10 @@ class MiningGameShow {
         this.triggerQuestionTransition(() => {
             this.currentMatchRound = Math.max(1, this.currentMatchRound - 1);
             this.currentQuestionIndex = (this.currentQuestionIndex - 1 + this.questions.length) % this.questions.length;
+            this.activeTeam = null;
+            this.stealMode = false;
+            this.currentStrikes = 0;
+            this.updateActiveTeamUI();
             this.renderQuestion();
             this.showRoundAnnouncement(this.currentMatchRound);
         });
@@ -481,6 +513,7 @@ class MiningGameShow {
 
         this.roundPot = 0;
         this.currentStrikes = 0;
+        this.stealMode = false;
         this.stopTimer();
         this.timerDigits.textContent = '--s';
         this.roundPotDisplay.textContent = '0';
@@ -519,6 +552,20 @@ class MiningGameShow {
                     this.roundPotDisplay.textContent = this.roundPot;
                     this.playSound('correct');
                     this.stopTimer();
+
+                    // Si estábamos en modo de robo y aciertan, el equipo contrario roba con éxito
+                    if (this.stealMode) {
+                        const stealingTeam = this.activeTeam === 'team1' ? 'team2' : 'team1';
+                        const stealingName = stealingTeam === 'team1' ? this.team1Name : this.team2Name;
+                        this.showBigTemporaryBanner(`🎉 ¡ROBO EXITOSO!`, `${stealingName} se lleva esta ronda`);
+                        if (stealingTeam === 'team1') {
+                            this.awardRoundTeam1();
+                        } else {
+                            this.awardRoundTeam2();
+                        }
+                        this.stealMode = false;
+                    }
+
                     this.broadcastSyncState();
                 }
             });
@@ -551,6 +598,21 @@ class MiningGameShow {
     }
 
     triggerStrike() {
+        if (this.stealMode) {
+            // Si ya estábamos en modo de robo y fallan el robo, el equipo activo original gana la ronda
+            this.playSound('incorrect');
+            const originalTeamName = this.activeTeam === 'team1' ? this.team1Name : this.team2Name;
+            this.showBigTemporaryBanner(`❌ ROBO FALLIDO`, `${originalTeamName} mantiene sus puntos y gana la ronda`);
+            if (this.activeTeam === 'team1') {
+                this.awardRoundTeam1();
+            } else {
+                this.awardRoundTeam2();
+            }
+            this.stealMode = false;
+            this.broadcastSyncState();
+            return;
+        }
+
         this.currentStrikes++;
         this.playSound('incorrect');
 
@@ -565,15 +627,26 @@ class MiningGameShow {
         this.strikeOverlay.classList.add('active');
         setTimeout(() => {
             this.strikeOverlay.classList.remove('active');
+            
+            // Si llega a 3 strikes, se activa la oportunidad de robo para el contrario
+            if (this.currentStrikes === 3 && !this.stealMode) {
+                this.stealMode = true;
+                const opposingTeamName = this.activeTeam === 'team1' ? this.team2Name : this.team1Name;
+                this.showBigTemporaryBanner(`❌ 3 STRIKES!`, `Oportunidad de robo para ${opposingTeamName}`);
+                this.broadcastSyncState();
+            }
         }, 1500);
 
         this.updateMiniStrikes();
-        if (this.currentStrikes >= 3) {
-            setTimeout(() => {
-                this.currentStrikes = 0;
-                this.updateMiniStrikes();
-            }, 3000);
-        }
+    }
+
+    showBigTemporaryBanner(title, subtitle) {
+        this.bigRoundNumberText.textContent = title;
+        this.bigRoundSubText.textContent = subtitle;
+        this.roundAnnouncementOverlay.classList.add('active');
+        setTimeout(() => {
+            this.roundAnnouncementOverlay.classList.remove('active');
+        }, 2500);
     }
 
     updateMiniStrikes() {
@@ -618,9 +691,9 @@ class MiningGameShow {
 
     checkMatchChampion() {
         if (this.team1RoundsWon >= 3) {
-            this.showChampionOverlay('LOS BARRETEROS');
+            this.showChampionOverlay(this.team1Name);
         } else if (this.team2RoundsWon >= 3) {
-            this.showChampionOverlay('LOS GAMBUSINOS');
+            this.showChampionOverlay(this.team2Name);
         }
     }
 
