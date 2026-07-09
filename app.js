@@ -93,6 +93,7 @@ class MiningGameShow {
             player2: [false, false, false, false, false]
         };
 
+        this.defeatScreenTriggered = false;
         this.fastTimerInterval = null;
         this.fastTimeLeft = 20;
 
@@ -373,6 +374,19 @@ class MiningGameShow {
             this.currentMatchRound = 1;
             this.updateRoundStars();
             this.championOverlay.classList.remove('active');
+            document.getElementById('defeatOverlay').style.display = 'none';
+            if (this.fastMoneyMode) {
+                this.toggleFastMoneyMode();
+            }
+            this.showRoundAnnouncement(1);
+        });
+
+        document.getElementById('btnRestartFromDefeat').addEventListener('click', () => {
+            this.team1RoundsWon = 0;
+            this.team2RoundsWon = 0;
+            this.currentMatchRound = 1;
+            this.updateRoundStars();
+            document.getElementById('defeatOverlay').style.display = 'none';
             if (this.fastMoneyMode) {
                 this.toggleFastMoneyMode();
             }
@@ -381,6 +395,7 @@ class MiningGameShow {
 
         document.getElementById('btnLaunchFastMoneyFromChampion').addEventListener('click', () => {
             this.championOverlay.classList.remove('active');
+            document.getElementById('defeatOverlay').style.display = 'none';
             if (!this.fastMoneyMode) {
                 this.toggleFastMoneyMode();
             }
@@ -1031,6 +1046,29 @@ class MiningGameShow {
             this.triggerVictoryCelebration();
         } else if (total < 200) {
             this.fastMoneyCelebrated = false;
+
+            // Verificar si todas las celdas de puntos del Jugador 2 han sido reveladas
+            const allP2Revealed = this.fastPointsRevealed.player2.every(val => val === true);
+            if (allP2Revealed) {
+                if (!this.defeatScreenTriggered) {
+                    this.defeatScreenTriggered = true;
+                    setTimeout(() => {
+                        this.triggerDefeatScreen(total);
+                    }, 2000);
+                }
+            } else {
+                this.defeatScreenTriggered = false;
+            }
+        }
+    }
+
+    triggerDefeatScreen(total) {
+        this.playSound('incorrect');
+        const overlay = document.getElementById('defeatOverlay');
+        const scoreEl = document.getElementById('defeatScore');
+        if (overlay && scoreEl) {
+            scoreEl.textContent = total;
+            overlay.style.display = 'flex';
         }
     }
 

@@ -315,7 +315,7 @@
         <div id="strikeContainer" class="strike-container"></div>
     </div>
 
-    <!-- MODAL DE CAMPEONES DEL PARTIDO -->
+    <!-- MODAL DE CAMPEONES DEL PARTIDO (VICTORIA) -->
     <div id="championOverlay" class="champion-overlay">
         <div class="champion-card" style="animation: pulseChampionCard 2s infinite alternate; border-color: #ffd800;">
             <div class="champion-title" style="animation: fireGlow 1s infinite alternate;">🏆 ¡VICTORIA ABSOLUTA! 🏆</div>
@@ -330,6 +330,26 @@
                     🔄 INICIAR NUEVA PARTIDA
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE DERROTA DE LA RONDA FINAL (DIGNO Y DIVERTIDO) -->
+    <div id="defeatOverlay" class="champion-overlay" style="background: rgba(4, 9, 22, 0.95); z-index: 1800; display: none;">
+        <div class="champion-card" style="border-color: #ff1e38; animation: pulseDefeatCard 2s infinite alternate; max-width: 580px; width: 90%;">
+            <div class="champion-title" style="color: #ff1e38; text-shadow: 0 0 20px rgba(255, 30, 56, 0.6);">⛏️ ¡CASI SE LLEVAN EL FILÓN! ⛏️</div>
+            <p style="color: #9baad8; font-size: 1.15rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">La veta de oro estuvo cerca...</p>
+            
+            <div style="font-size: 1.5rem; font-weight: 800; color: #fff; margin: 1.5rem 0;">
+                Lograron acumular <span id="defeatScore" style="color:#ff1e38; font-size:3rem; font-family:'Bebas Neue'; text-shadow:0 0 15px rgba(255, 30, 56, 0.4);">0</span> de 200 puntos necesarios.
+            </div>
+            
+            <p style="color: #8ab4ff; font-style: italic; font-size: 1.05rem; line-height: 1.4; margin-bottom: 2rem; padding: 0 1rem; border-left: 3px solid #ff1e38;">
+                "¡Excelente intento, mineros! La veta de oro estuvo dura de picar hoy. No se llevan el acumulado, pero se llevan los aplausos de toda la cuadrilla y un merecido descanso." 👷‍♂️🍻
+            </p>
+            
+            <button id="btnRestartFromDefeat" class="btn-start-show" style="font-size: 1.3rem; padding: 0.7rem 2rem; background: rgba(14, 33, 84, 0.8); border: 2px solid #ff4e62; box-shadow: none;">
+                🔄 INICIAR NUEVO SHOW
+            </button>
         </div>
     </div>
 

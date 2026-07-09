@@ -863,6 +863,11 @@ body {
     100% { box-shadow: 0 0 75px rgba(255, 216, 0, 0.85); transform: scale(1.02); }
 }
 
+@keyframes pulseDefeatCard {
+    0% { box-shadow: 0 0 30px rgba(255, 30, 56, 0.3); transform: scale(1); }
+    100% { box-shadow: 0 0 60px rgba(255, 30, 56, 0.75); transform: scale(1.02); }
+}
+
 @keyframes pulseChampionButton {
     0% { transform: scale(1); box-shadow: 0 6px 20px rgba(255, 216, 0, 0.5); }
     100% { transform: scale(1.06); box-shadow: 0 15px 40px rgba(255, 216, 0, 0.85); }
