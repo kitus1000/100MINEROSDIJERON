@@ -1,5 +1,5 @@
 // Controlador Principal de "100 MINEROS DIJERON - EDICIÓN GRUPO BACIS"
-// Autor: Antigravity AI - Edición Doble Motor Remoto en Nube
+// Autor: Antigravity AI - Edición Nube Global PubNub + MQTT
 
 class MiningGameShow {
     constructor() {
@@ -8,7 +8,7 @@ class MiningGameShow {
         this.currentQuestionIndex = this.findNextUnplayedIndex(0);
 
         this.syncChannel = new BroadcastChannel('bacis_game_channel');
-        this.setupRedundantCloudSync();
+        this.setupPubNubAndMqttSync();
 
         this.currentMatchRound = 1;
         this.roundPot = 0;
@@ -37,46 +37,56 @@ class MiningGameShow {
         this.renderQuestion();
     }
 
-    setupRedundantCloudSync() {
+    setupPubNubAndMqttSync() {
+        this.PUBNUB_CHANNEL = 'bacis-100-mineros-show-2026';
         this.TOPIC_STATE = 'bacis/game/100mineros/bacis2026/state';
         this.TOPIC_COMMANDS = 'bacis/game/100mineros/bacis2026/commands';
-        
-        if (typeof mqtt !== 'undefined') {
-            const handleMessage = (topic, message) => {
-                if (topic === this.TOPIC_COMMANDS) {
-                    try {
-                        const cmd = JSON.parse(message.toString());
+
+        // 1. PubNub Global Cloud
+        try {
+            if (typeof PubNub !== 'undefined') {
+                this.pubnub = new PubNub({
+                    publishKey: 'demo',
+                    subscribeKey: 'demo',
+                    userId: 'bacis-tv-screen'
+                });
+                this.pubnub.addListener({
+                    message: (event) => {
+                        const cmd = event.message;
                         if (cmd && cmd.action) {
                             this.handleRemoteCommand(cmd);
                         }
-                    } catch (e) {}
-                }
-            };
+                    }
+                });
+                this.pubnub.subscribe({ channels: [this.PUBNUB_CHANNEL] });
+            }
+        } catch (e) {}
 
-            // Broker 1: HiveMQ
+        // 2. MQTT EMQX WSS Port 8084
+        if (typeof mqtt !== 'undefined') {
             try {
-                this.mqtt1 = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
-                this.mqtt1.on('connect', () => {
+                this.mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+                this.mqttClient.on('connect', () => {
                     const badge = document.getElementById('cloudStatusBadge');
                     if (badge) {
                         badge.style.borderColor = '#00ff88';
                         badge.style.color = '#00ff88';
-                        badge.textContent = '🟢 NUBE ONLINE (BACIS TV)';
+                        badge.textContent = '🟢 NUBE BACIS ACTIVA';
                     }
-                    this.mqtt1.subscribe(this.TOPIC_COMMANDS);
+                    this.mqttClient.subscribe(this.TOPIC_COMMANDS);
                     this.broadcastSyncState();
                 });
-                this.mqtt1.on('message', handleMessage);
-            } catch (e) {}
 
-            // Broker 2: EMQX
-            try {
-                this.mqtt2 = mqtt.connect('wss://broker.emqx.io:8884/mqtt');
-                this.mqtt2.on('connect', () => {
-                    this.mqtt2.subscribe(this.TOPIC_COMMANDS);
-                    this.broadcastSyncState();
+                this.mqttClient.on('message', (topic, message) => {
+                    if (topic === this.TOPIC_COMMANDS) {
+                        try {
+                            const cmd = JSON.parse(message.toString());
+                            if (cmd && cmd.action) {
+                                this.handleRemoteCommand(cmd);
+                            }
+                        } catch (e) {}
+                    }
                 });
-                this.mqtt2.on('message', handleMessage);
             } catch (e) {}
         }
     }
@@ -274,11 +284,11 @@ class MiningGameShow {
             if (badge) {
                 badge.style.background = '#ffd800';
                 badge.style.color = '#000';
-                badge.textContent = '⚡ ¡RECIBIENDO COMANDO REMOTO!';
+                badge.textContent = '⚡ ¡COMANDO REMOTO RECIBIDO!';
                 setTimeout(() => {
                     badge.style.background = '#0b1836';
                     badge.style.color = '#00ff88';
-                    badge.textContent = '🟢 NUBE ONLINE (BACIS TV)';
+                    badge.textContent = '🟢 NUBE BACIS ACTIVA';
                 }, 1500);
             }
         } else if (cmd.action === 'REVEAL_CARD') {
@@ -322,11 +332,15 @@ class MiningGameShow {
             ...stateObj
         });
 
-        if (this.mqtt1) {
-            try { this.mqtt1.publish(this.TOPIC_STATE, JSON.stringify(stateObj)); } catch(e) {}
+        if (this.pubnub) {
+            this.pubnub.publish({
+                channel: this.PUBNUB_CHANNEL,
+                message: { type: 'SYNC_STATE', ...stateObj }
+            }).catch(e => {});
         }
-        if (this.mqtt2) {
-            try { this.mqtt2.publish(this.TOPIC_STATE, JSON.stringify(stateObj)); } catch(e) {}
+
+        if (this.mqttClient) {
+            try { this.mqttClient.publish(this.TOPIC_STATE, JSON.stringify(stateObj)); } catch(e) {}
         }
     }
 

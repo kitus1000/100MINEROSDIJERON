@@ -6,7 +6,7 @@
     <title>CONTROL REMOTO CONDUCTOR - 100 MINEROS DIJERON</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pubnub@7.4.0/dist/pubnub.min.js"></script>
     <style>
         body {
             background: #040916;
@@ -155,14 +155,14 @@
             📱 CONTROL REMOTO DEL CONDUCTOR
         </h2>
         <div class="remote-status" id="connectionStatus">
-            <span>🟡</span> BUSCANDO CONEXIÓN CON PANTALLA EN VIVO...
+            <span>🟡</span> CONECTANDO A NUBE GLOBAL BACIS...
         </div>
         <div style="display:flex; justify-content:center; gap:0.6rem; margin-top:0.7rem;">
             <button id="btnTestSoundRemote" style="background:#ffd800; color:#000; border:none; border-radius:10px; padding:0.6rem 1rem; font-size:0.9rem; font-weight:900; cursor:pointer; box-shadow:0 0 15px rgba(255,216,0,0.5);">
                 🔊 PROBAR SONIDO EN TV
             </button>
             <button id="btnForceSync" style="background:#1b3b8b; border:1px solid #ffd800; color:#fff; border-radius:10px; padding:0.6rem 1rem; font-size:0.9rem; font-weight:800; cursor:pointer;">
-                🔄 SINCRONIZAR
+                🔄 ACTUALIZAR PREGUNTA
             </button>
         </div>
     </div>
@@ -225,11 +225,11 @@
         function setConnectedUI() {
             const statusEl = document.getElementById('connectionStatus');
             statusEl.classList.add('connected');
-            statusEl.innerHTML = '<span>🟢</span> CONECTADO A PANTALLA DE TV';
+            statusEl.innerHTML = '<span>🟢</span> CONECTADO EN VIVO A TV';
         }
 
         // ==========================================
-        // MOTOR 1: BroadcastChannel (Misma PC)
+        // 1. MOTOR LOCAL: BroadcastChannel
         // ==========================================
         const channel = new BroadcastChannel('bacis_game_channel');
         channel.onmessage = (event) => {
@@ -240,46 +240,55 @@
         };
 
         // ==========================================
-        // MOTOR 2: MQTT Redundante (Broker HiveMQ + Broker EMQX)
+        // 2. MOTOR NUBE GLOBAL: PubNub (100% Online Vercel)
+        // ==========================================
+        const PUBNUB_CHANNEL = 'bacis-100-mineros-show-2026';
+        let pubnub = null;
+        try {
+            pubnub = new PubNub({
+                publishKey: 'demo',
+                subscribeKey: 'demo',
+                userId: 'bacis-conductor-' + Math.random().toString(36).substr(2, 6)
+            });
+            pubnub.addListener({
+                message: (event) => {
+                    const data = event.message;
+                    if (data && data.type === 'SYNC_STATE') {
+                        setConnectedUI();
+                        applySyncState(data);
+                    }
+                }
+            });
+            pubnub.subscribe({ channels: [PUBNUB_CHANNEL] });
+            setTimeout(() => {
+                setConnectedUI();
+                sendRemoteCommand('REQUEST_SYNC');
+            }, 800);
+        } catch (e) {}
+
+        // ==========================================
+        // 3. MOTOR MQTT WSS PUERTO 8084 (Respaldo)
         // ==========================================
         const TOPIC_STATE = 'bacis/game/100mineros/bacis2026/state';
         const TOPIC_COMMANDS = 'bacis/game/100mineros/bacis2026/commands';
-        
-        let mqtt1 = null;
-        let mqtt2 = null;
-
-        function connectMQTTBrokers() {
-            try {
-                mqtt1 = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
-                mqtt1.on('connect', () => {
-                    setConnectedUI();
-                    mqtt1.subscribe(TOPIC_STATE);
-                    sendRemoteCommand('REQUEST_SYNC');
-                });
-                mqtt1.on('message', (t, m) => handleCloudMsg(t, m));
-            } catch (e) {}
-
-            try {
-                mqtt2 = mqtt.connect('wss://broker.emqx.io:8884/mqtt');
-                mqtt2.on('connect', () => {
-                    setConnectedUI();
-                    mqtt2.subscribe(TOPIC_STATE);
-                    sendRemoteCommand('REQUEST_SYNC');
-                });
-                mqtt2.on('message', (t, m) => handleCloudMsg(t, m));
-            } catch (e) {}
-        }
-        connectMQTTBrokers();
-
-        function handleCloudMsg(topic, message) {
-            if (topic === TOPIC_STATE) {
-                try {
-                    const data = JSON.parse(message.toString());
-                    setConnectedUI();
-                    applySyncState(data);
-                } catch (e) {}
-            }
-        }
+        let mqttClient = null;
+        try {
+            mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+            mqttClient.on('connect', () => {
+                setConnectedUI();
+                mqttClient.subscribe(TOPIC_STATE);
+                sendRemoteCommand('REQUEST_SYNC');
+            });
+            mqttClient.on('message', (t, m) => {
+                if (t === TOPIC_STATE) {
+                    try {
+                        const data = JSON.parse(m.toString());
+                        setConnectedUI();
+                        applySyncState(data);
+                    } catch(e) {}
+                }
+            });
+        } catch (e) {}
 
         function applySyncState(data) {
             if (!data || !data.question) return;
@@ -318,17 +327,20 @@
         function sendRemoteCommand(actionType, payload = {}) {
             const msg = { type: 'REMOTE_COMMAND', action: actionType, ...payload };
             
-            // 1. Enviar local
+            // 1. BroadcastChannel local
             channel.postMessage(msg);
 
-            // 2. Enviar por Nube MQTT 1
-            if (mqtt1) {
-                try { mqtt1.publish(TOPIC_COMMANDS, JSON.stringify(msg)); } catch(e) {}
+            // 2. PubNub Cloud Global
+            if (pubnub) {
+                pubnub.publish({
+                    channel: PUBNUB_CHANNEL,
+                    message: msg
+                }).catch(e => {});
             }
 
-            // 3. Enviar por Nube MQTT 2
-            if (mqtt2) {
-                try { mqtt2.publish(TOPIC_COMMANDS, JSON.stringify(msg)); } catch(e) {}
+            // 3. MQTT EMQX WSS 8084
+            if (mqttClient) {
+                try { mqttClient.publish(TOPIC_COMMANDS, JSON.stringify(msg)); } catch(e) {}
             }
         }
 
@@ -348,7 +360,7 @@
         document.getElementById('remAwardT1').addEventListener('click', () => sendRemoteCommand('AWARD_ROUND_T1'));
         document.getElementById('remAwardT2').addEventListener('click', () => sendRemoteCommand('AWARD_ROUND_T2'));
 
-        setTimeout(() => sendRemoteCommand('REQUEST_SYNC'), 700);
+        setTimeout(() => sendRemoteCommand('REQUEST_SYNC'), 500);
         renderRemoteScreen();
     </script>
 </body>
