@@ -232,6 +232,24 @@
         </div>
     </div>
 
+    <!-- TOAST DE CONFIRMACIÓN EN EL CELULAR -->
+    <div id="remoteToast" style="position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#00ff88; color:#000; font-weight:900; padding:0.8rem 1.4rem; border-radius:999px; box-shadow:0 6px 28px rgba(0,255,136,0.7); z-index:9999; display:none; font-size:0.95rem; text-align:center; pointer-events:none;">
+        🎉 ¡Comando Enviado a TV!
+    </div>
+
+    <!-- MARCADOR EN VIVO DE RONDAS GANADAS -->
+    <div id="remoteScoreBanner" style="background:#0c1836; border:2px solid #ffd800; border-radius:14px; padding:0.8rem 1rem; margin:0.8rem auto 1.2rem auto; max-width:600px; display:flex; justify-content:space-around; align-items:center; box-shadow:0 0 20px rgba(255,216,0,0.15);">
+        <div style="text-align:center;">
+            <div id="scoreT1Name" style="font-weight:900; font-size:0.85rem; color:#8ab4ff;">👷‍♂️ BARRETEROS</div>
+            <div id="scoreT1Value" style="font-family:'Bebas Neue'; font-size:1.8rem; color:#ffd800;">🏆 0</div>
+        </div>
+        <div style="font-family:'Bebas Neue'; font-size:1.4rem; color:#fff;">VS</div>
+        <div style="text-align:center;">
+            <div id="scoreT2Name" style="font-weight:900; font-size:0.85rem; color:#8ab4ff;">💡 GAMBUSINOS</div>
+            <div id="scoreT2Value" style="font-family:'Bebas Neue'; font-size:1.8rem; color:#ffd800;">🏆 0</div>
+        </div>
+    </div>
+
     <!-- ==========================================
        VISTA 1: JUEGO NORMAL DE TABLERO
        ========================================== -->
@@ -381,9 +399,38 @@
             };
         }
 
+        function showToast(msg, color = '#00ff88') {
+            const toast = document.getElementById('remoteToast');
+            if (!toast) return;
+            toast.textContent = msg;
+            toast.style.background = color;
+            toast.style.color = color === '#00ff88' || color === '#ffd800' ? '#000' : '#fff';
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2500);
+        }
+
         function applySyncState(data) {
             fastMoneyMode = data.fastMoneyMode || false;
             
+            // Actualizar Marcador en Vivo
+            const t1Name = data.team1Name || 'BARRETEROS';
+            const t2Name = data.team2Name || 'GAMBUSINOS';
+            const t1Wins = data.team1RoundsWon || 0;
+            const t2Wins = data.team2RoundsWon || 0;
+            const qNum = (typeof data.currentQuestionIndex === 'number') ? (data.currentQuestionIndex + 1) : '?';
+            const totalQ = data.totalQuestions || 65;
+
+            const scoreT1Name = document.getElementById('scoreT1Name');
+            const scoreT1Val = document.getElementById('scoreT1Value');
+            const scoreT2Name = document.getElementById('scoreT2Name');
+            const scoreT2Val = document.getElementById('scoreT2Value');
+            if (scoreT1Name) scoreT1Name.textContent = `👷‍♂️ ${t1Name}`;
+            if (scoreT1Val) scoreT1Val.textContent = `🏆 ${t1Wins}`;
+            if (scoreT2Name) scoreT2Name.textContent = `💡 ${t2Name}`;
+            if (scoreT2Val) scoreT2Val.textContent = `🏆 ${t2Wins}`;
+
             // Alternar vistas principales
             if (fastMoneyMode) {
                 document.getElementById('normalGameRemoteView').style.display = 'none';
@@ -408,15 +455,13 @@
                 activeTeam = data.activeTeam;
                 stealMode = data.stealMode;
                 
-                document.getElementById('remoteRoundBadge').textContent = `🎁 RONDA ${data.round || 1} DE 5`;
+                document.getElementById('remoteRoundBadge').textContent = `🎁 RONDA ${data.round || 1} DE 5 • P. ${qNum}/${totalQ}`;
                 
-                // Selector de turnos
-                const t1Name = data.team1Name || 'BARRETEROS';
-                const t2Name = data.team2Name || 'GAMBUSINOS';
+                // Selector de turnos y botones de acreditar ronda
                 document.getElementById('btnTurnT1').textContent = `👷‍♂️ ${t1Name}`;
                 document.getElementById('btnTurnT2').textContent = `💡 ${t2Name}`;
-                document.getElementById('remAwardT1').textContent = `👷‍♂️ +1 RONDA ${t1Name}`;
-                document.getElementById('remAwardT2').textContent = `💡 +1 RONDA ${t2Name}`;
+                document.getElementById('remAwardT1').textContent = `👷‍♂️ +1 RONDA ${t1Name} (🏆 ${t1Wins})`;
+                document.getElementById('remAwardT2').textContent = `💡 +1 RONDA ${t2Name} (🏆 ${t2Wins})`;
 
                 document.getElementById('btnTurnT1').style.background = activeTeam === 'team1' ? '#ffd800' : '#0d1b3e';
                 document.getElementById('btnTurnT1').style.color = activeTeam === 'team1' ? '#000' : '#fff';
@@ -615,8 +660,14 @@
         document.getElementById('remBtnNext').addEventListener('click', () => sendRemoteCommand('NEXT_QUESTION'));
         document.getElementById('remBtnTimer10').addEventListener('click', () => sendRemoteCommand('START_TIMER', { seconds: 10 }));
         document.getElementById('remBtnTimer5').addEventListener('click', () => sendRemoteCommand('START_TIMER', { seconds: 5 }));
-        document.getElementById('remAwardT1').addEventListener('click', () => sendRemoteCommand('AWARD_ROUND_T1'));
-        document.getElementById('remAwardT2').addEventListener('click', () => sendRemoteCommand('AWARD_ROUND_T2'));
+        document.getElementById('remAwardT1').addEventListener('click', () => {
+            showToast('🏆 ¡Enviada +1 Ronda a Barreteros!', '#ffd800');
+            sendRemoteCommand('AWARD_ROUND_T1');
+        });
+        document.getElementById('remAwardT2').addEventListener('click', () => {
+            showToast('🏆 ¡Enviada +1 Ronda a Gambusinos!', '#ffd800');
+            sendRemoteCommand('AWARD_ROUND_T2');
+        });
 
         setupCloudSSE();
         renderRemoteScreen();

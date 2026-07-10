@@ -548,12 +548,16 @@ class MiningGameShow {
         const stateObj = {
             round: this.currentMatchRound,
             question: this.questions[this.currentQuestionIndex],
+            currentQuestionIndex: this.currentQuestionIndex,
+            totalQuestions: this.questions ? this.questions.length : 0,
             revealedIndexes: revealed,
             activeTeam: this.activeTeam,
             stealMode: this.stealMode,
             currentStrikes: this.currentStrikes,
             team1Name: this.team1Name,
             team2Name: this.team2Name,
+            team1RoundsWon: this.team1RoundsWon,
+            team2RoundsWon: this.team2RoundsWon,
             
             // Estado Dinero Rápido
             fastMoneyMode: this.fastMoneyMode,
@@ -619,6 +623,7 @@ class MiningGameShow {
         this.team1RoundsWon++;
         this.playSound('win');
         this.updateRoundStars();
+        this.showBigTemporaryBanner(`🏆 +1 RONDA ACUMULADA`, `${this.team1Name} suma una ronda ganada (${this.team1RoundsWon} de 3)`);
         this.checkMatchChampion();
         this.broadcastSyncState();
     }
@@ -627,6 +632,7 @@ class MiningGameShow {
         this.team2RoundsWon++;
         this.playSound('win');
         this.updateRoundStars();
+        this.showBigTemporaryBanner(`🏆 +1 RONDA ACUMULADA`, `${this.team2Name} suma una ronda ganada (${this.team2RoundsWon} de 3)`);
         this.checkMatchChampion();
         this.broadcastSyncState();
     }
