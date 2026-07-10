@@ -620,6 +620,7 @@ class MiningGameShow {
         this.playSound('win');
         this.updateRoundStars();
         this.checkMatchChampion();
+        this.broadcastSyncState();
     }
 
     awardRoundTeam2() {
@@ -627,6 +628,7 @@ class MiningGameShow {
         this.playSound('win');
         this.updateRoundStars();
         this.checkMatchChampion();
+        this.broadcastSyncState();
     }
 
     showRoundAnnouncement(roundNum) {
