@@ -72,7 +72,8 @@ class MiningGameShow {
         // VARIABLES DE DINERO RÁPIDO (FAST MONEY)
         // ==========================================
         this.fastMoneyMode = false;
-        this.fastQuestions = FAST_MONEY_QUESTIONS;
+        this.fastQuestions = []; // Se generan al activar la Ronda Final
+        this.usedFinalRoundIds = []; // IDs ya usados en rondas finales anteriores
         
         // Inicializar respuestas y puntos vacíos para ambos jugadores
         this.fastAnswers = {
@@ -950,10 +951,41 @@ class MiningGameShow {
     // ==========================================
     // MÉTODOS DE DINERO RÁPIDO (FAST MONEY)
     // ==========================================
+    pickFinalRoundQuestions() {
+        // Usar las preguntas del paquete activo (this.questions) que NO se hayan usado
+        // en rondas finales anteriores. Si ya se usaron todas, resetear el historial.
+        const pool = this.questions.filter(q => !this.usedFinalRoundIds.includes(q.id));
+
+        // Si se agotó el pool, reiniciar historial de ronda final
+        if (pool.length < 5) {
+            this.usedFinalRoundIds = [];
+            const freshPool = [...this.questions];
+            this.shuffleQuestions(freshPool);
+            const picked = freshPool.slice(0, 5);
+            picked.forEach(q => this.usedFinalRoundIds.push(q.id));
+            return picked;
+        }
+
+        const shuffled = this.shuffleQuestions([...pool]);
+        const picked = shuffled.slice(0, 5);
+        picked.forEach(q => this.usedFinalRoundIds.push(q.id));
+        return picked;
+    }
+
     toggleFastMoneyMode() {
         this.fastMoneyMode = !this.fastMoneyMode;
         
         if (this.fastMoneyMode) {
+            // Seleccionar 5 preguntas frescas del paquete activo
+            this.fastQuestions = this.pickFinalRoundQuestions();
+
+            // Resetear estado de respuestas y revelados para la nueva ronda final
+            this.fastAnswers = { player1: ["","","","",""], player2: ["","","","",""] };
+            this.fastPoints  = { player1: [0,0,0,0,0],   player2: [0,0,0,0,0] };
+            this.fastRevealed      = { player1: [false,false,false,false,false], player2: [false,false,false,false,false] };
+            this.fastPointsRevealed = { player1: [false,false,false,false,false], player2: [false,false,false,false,false] };
+            this.defeatScreenTriggered = false;
+
             this.normalGameArena.style.display = 'none';
             this.normalGameStrip.style.display = 'none';
             this.fastMoneyArena.style.display = 'block';
