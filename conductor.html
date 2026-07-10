@@ -651,7 +651,7 @@
         // Controles de tiempo Dinero Rápido
         document.getElementById('btnFastTimer20').addEventListener('click', () => sendRemoteCommand('START_FAST_TIMER', { seconds: 20 }));
         document.getElementById('btnFastTimer25').addEventListener('click', () => sendRemoteCommand('START_FAST_TIMER', { seconds: 25 }));
-        document.getElementById('btnFastStop').addEventListener('click', () => sendRemoteCommand('STOP_FAST_TIMER'));
+        document.getElementById('btnFastTimerStop').addEventListener('click', () => sendRemoteCommand('STOP_FAST_TIMER'));
 
         document.getElementById('btnTestSoundRemote').addEventListener('click', () => sendRemoteCommand('TEST_SOUND'));
         document.getElementById('btnForceSync').addEventListener('click', () => sendRemoteCommand('SKIP_QUESTION'));
