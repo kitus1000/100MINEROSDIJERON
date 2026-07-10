@@ -219,9 +219,12 @@
             <button id="btnSaveRoomCode" class="btn-room-save">CONECTAR</button>
         </div>
 
-        <div style="display:flex; justify-content:center; gap:0.6rem; margin-top:0.7rem;">
+        <div style="display:flex; justify-content:center; gap:0.6rem; margin-top:0.7rem; flex-wrap:wrap;">
+            <button id="btnForceSyncState" style="background:#00ff88; color:#000; border:none; border-radius:10px; padding:0.6rem 1rem; font-size:0.9rem; font-weight:900; cursor:pointer;">
+                🔄 SINCRONIZAR CON TV
+            </button>
             <button id="btnTestSoundRemote" style="background:#ffd800; color:#000; border:none; border-radius:10px; padding:0.6rem 1rem; font-size:0.9rem; font-weight:900; cursor:pointer;">
-                🔊 PROBAR SONIDO EN TV
+                🔊 PROBAR SONIDO
             </button>
             <button id="btnToggleFastMoneyRemote" style="background:#be0b21; border:1px solid #ffd800; color:#fff; border-radius:10px; padding:0.6rem 1rem; font-size:0.9rem; font-weight:800; cursor:pointer;">
                 🔥 RONDA FINAL
@@ -296,7 +299,7 @@
     </div>
 
     <!-- ==========================================
-       VISTA 2: CONTROLES DINERO RÁPIDO
+       VISTA 2: CONTROLES RONDA FINAL
        ========================================== -->
     <div id="fastMoneyRemoteView" style="display: none;">
         <div class="q-display" style="background: linear-gradient(135deg, #be0b21, #0d1b3e);">
@@ -316,7 +319,7 @@
 
     <script src="questions.js"></script>
     <script>
-        let currentQuestion = MINING_QUESTIONS[0];
+        let currentQuestion = null; // Inicia en nulo para forzar la sincronización correcta de la TV
         let revealedIndexes = [];
         let roomCode = localStorage.getItem('bacis_room_code') || 'BACIS100';
         let eventSource = null;
@@ -428,10 +431,13 @@
         }
 
         function renderRemoteScreen() {
-            if (!currentQuestion) return;
-            document.getElementById('remoteQuestionText').textContent = currentQuestion.question;
-
             const grid = document.getElementById('remoteAnswersGrid');
+            if (!currentQuestion) {
+                document.getElementById('remoteQuestionText').textContent = "⚠️ ESPERANDO SINCRONIZACIÓN DE LA TV...";
+                grid.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; padding:2.5rem; color:#9baad8; font-weight:800; font-size:1rem; border:2px dashed #234eb6; border-radius:12px; background:rgba(13,27,62,0.3);">Por favor, inicia el show en la laptop o haz clic en "Sincronizar con TV".</div>';
+                return;
+            }
+            document.getElementById('remoteQuestionText').textContent = currentQuestion.question;
             grid.innerHTML = '';
 
             currentQuestion.answers.forEach((ans, idx) => {
@@ -583,6 +589,11 @@
             }
         });
 
+        // Forzar Sincronización Manual
+        document.getElementById('btnForceSyncState').addEventListener('click', () => {
+            sendRemoteCommand('REQUEST_SYNC');
+        });
+
         // Alternar Dinero Rápido
         document.getElementById('btnToggleFastMoneyRemote').addEventListener('click', () => {
             sendRemoteCommand('TOGGLE_FAST_MONEY');
@@ -595,7 +606,7 @@
         // Controles de tiempo Dinero Rápido
         document.getElementById('btnFastTimer20').addEventListener('click', () => sendRemoteCommand('START_FAST_TIMER', { seconds: 20 }));
         document.getElementById('btnFastTimer25').addEventListener('click', () => sendRemoteCommand('START_FAST_TIMER', { seconds: 25 }));
-        document.getElementById('btnFastTimerStop').addEventListener('click', () => sendRemoteCommand('STOP_FAST_TIMER'));
+        document.getElementById('btnFastStop').addEventListener('click', () => sendRemoteCommand('STOP_FAST_TIMER'));
 
         document.getElementById('btnTestSoundRemote').addEventListener('click', () => sendRemoteCommand('TEST_SOUND'));
         document.getElementById('btnForceSync').addEventListener('click', () => sendRemoteCommand('SKIP_QUESTION'));
